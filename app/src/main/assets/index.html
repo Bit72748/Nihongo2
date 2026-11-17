@@ -360,6 +360,13 @@ function getActiveProvider(){
 function getProviderKey(provider){
  return localStorage.getItem(provider==="groq"?STORAGE.groqKey:STORAGE.key)||"";
 }
+async function callChatAPI(provider,key,model,payload){
+ const endpoint=provider==="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://api.mistral.ai/v1/chat/completions";
+ const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,...payload})});
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error?.message||data.message||"Erro na API: "+response.status);
+ return data;
+}
 async function requestProfessorAnswer(){
  if(busy||!conversation.length)return;
  const provider=getActiveProvider();
@@ -368,9 +375,16 @@ async function requestProfessorAnswer(){
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
-  const endpoint=provider==="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://api.mistral.ai/v1/chat/completions";
-  const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,messages:[{role:"system",content:systemPrompt},...conversation.slice(-16)],temperature:0.65,max_tokens:1400})});
-  const data=await response.json();if(!response.ok)throw new Error(data.message||data.error?.message||"Erro na API: "+response.status);
+  const payload={messages:[{role:"system",content:systemPrompt},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
+  let data;
+  try{
+   data=await callChatAPI(provider,key,model,payload);
+  }catch(primaryError){
+   const fallbackKey=provider==="groq"?getProviderKey("mistral"):"";
+   if(!fallbackKey)throw primaryError;
+   data=await callChatAPI("mistral",fallbackKey,"ministral-8b-latest",payload);
+   loading.textContent="Groq indisponível. Resposta gerada pela Mistral.";
+  }
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
   conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();
  }catch(e){loading.textContent="Erro: "+e.message;}
