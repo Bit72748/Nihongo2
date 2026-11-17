@@ -714,28 +714,82 @@ $("saveSettings").addEventListener("click",() => {
   $("settingsStatus").textContent = "Configurações salvas!";
 });
 
-$("exportData").addEventListener("click",() => {
-  const data = {
-    memory,
-    progress,
-    words,
-    conversation,
-    settings:{model:localStorage.getItem(STORAGE.model)||"ministral-8b-latest",style:localStorage.getItem(STORAGE.style)||"gourmet"},
-    exportedAt:new Date().toISOString()
-  };
+function createBackupData(){
+ return {
+  format:"nihongo-backup",
+  version:1,
+  memory,
+  progress,
+  words,
+  conversation,
+  settings:{
+   model:localStorage.getItem(STORAGE.model)||"ministral-8b-latest",
+   style:localStorage.getItem(STORAGE.style)||"gourmet"
+  },
+  exportedAt:new Date().toISOString()
+ };
+}
+function exportBackup(){
+ try{
+  const json=JSON.stringify(createBackupData(),null,2);
+  if(window.AndroidFiles&&typeof window.AndroidFiles.exportJson==="function"){
+   window.AndroidFiles.exportJson(json);
+   $("settingsStatus").textContent="Preparando o arquivo de backup...";
+   return;
+  }
+  const blob=new Blob([json],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="nihongo-memoria.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  $("settingsStatus").textContent="Backup exportado!";
+ }catch(err){
+  $("settingsStatus").textContent="Falha ao exportar: "+err.message;
+ }
+}
+$("exportData").addEventListener("click",exportBackup);
 
-  const blob = new Blob([JSON.stringify(data,null,2)],{
-    type:"application/json"
-  });
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = "nihongo-memoria.json";
-  a.click();
-
-  URL.revokeObjectURL(url);
+function applyBackup(data){
+ if(!data||typeof data!=="object"||Array.isArray(data))throw new Error("O arquivo não contém um backup válido.");
+ const hasKnownField=["memory","progress","words","conversation","settings"].some(k=>Object.prototype.hasOwnProperty.call(data,k));
+ if(!hasKnownField)throw new Error("Este JSON não parece ser um backup do Nihongo.");
+ if(data.memory!==undefined&&typeof data.memory!=="string")throw new Error("Memória inválida.");
+ if(data.progress!==undefined&&(!data.progress||typeof data.progress!=="object"||Array.isArray(data.progress)))throw new Error("Progresso inválido.");
+ if(data.words!==undefined&&!Array.isArray(data.words))throw new Error("Lista de palavras inválida.");
+ if(data.conversation!==undefined&&!Array.isArray(data.conversation))throw new Error("Histórico de conversa inválido.");
+ const nextMemory=typeof data.memory==="string"?data.memory:memory;
+ const nextProgress=data.progress?{xp:Math.max(0,Number(data.progress.xp)||0),messages:Math.max(0,Number(data.progress.messages)||0)}:progress;
+ const nextWords=Array.isArray(data.words)?data.words.filter(w=>w&&typeof w.jp==="string"&&typeof w.meaning==="string"):words;
+ const nextConversation=Array.isArray(data.conversation)?data.conversation.filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.content==="string").slice(-80):conversation;
+ const settings=data.settings&&typeof data.settings==="object"?data.settings:{};
+ // Validate and write before changing in-memory state, so a storage error cannot leave a half-imported backup.
+ localStorage.setItem(STORAGE.memory,nextMemory);
+ localStorage.setItem(STORAGE.progress,JSON.stringify(nextProgress));
+ localStorage.setItem(STORAGE.words,JSON.stringify(nextWords));
+ localStorage.setItem("nihongoConversation",JSON.stringify(nextConversation));
+ if(["ministral-8b-latest","mistral-small-latest"].includes(settings.model))localStorage.setItem(STORAGE.model,settings.model);
+ if(["gourmet","simple"].includes(settings.style))localStorage.setItem(STORAGE.style,settings.style);
+ memory=nextMemory;progress=nextProgress;words=nextWords;conversation=nextConversation;
+ loadSettings();updateProgress();renderWords();renderChat();
+ $("settingsStatus").textContent="Backup importado com sucesso!";
+}
+window.receiveImportedBackup=function(base64){
+ try{
+  const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+  const json=new TextDecoder("utf-8").decode(bytes);
+  applyBackup(JSON.parse(json));
+ }catch(err){$("settingsStatus").textContent="Falha ao importar: "+err.message;}
+};
+$("importData").addEventListener("click",()=>{
+ if(window.AndroidFiles&&typeof window.AndroidFiles.importJson==="function")window.AndroidFiles.importJson();
+ else $("importFile").click();
+});
+$("importFile").addEventListener("change",async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{applyBackup(JSON.parse(await file.text()));}
+ catch(err){$("settingsStatus").textContent="Falha ao importar: "+err.message;}
+ finally{e.target.value="";}
 });
 $("importData").addEventListener("click",()=>$("importFile").click());
 $("importFile").addEventListener("change",async e=>{
