@@ -1,0 +1,1107 @@
+{
+  "format": "nihongo-vocabulary",
+  "version": 1,
+  "language": "ja",
+  "translationLanguage": "pt-BR",
+  "description": "Vocabulário-base reunido das lições e conversas de japonês já estudadas.",
+  "entries": [
+    {
+      "jp": "水",
+      "romaji": "mizu",
+      "meaning": "água",
+      "category": "substantivo"
+    },
+    {
+      "jp": "ご飯",
+      "romaji": "gohan",
+      "meaning": "arroz; refeição",
+      "category": "substantivo"
+    },
+    {
+      "jp": "猫",
+      "romaji": "neko",
+      "meaning": "gato",
+      "category": "substantivo"
+    },
+    {
+      "jp": "犬",
+      "romaji": "inu",
+      "meaning": "cachorro",
+      "category": "substantivo"
+    },
+    {
+      "jp": "友達",
+      "romaji": "tomodachi",
+      "meaning": "amigo; amiga",
+      "category": "substantivo"
+    },
+    {
+      "jp": "映画",
+      "romaji": "eiga",
+      "meaning": "filme",
+      "category": "substantivo"
+    },
+    {
+      "jp": "名前",
+      "romaji": "namae",
+      "meaning": "nome",
+      "category": "substantivo"
+    },
+    {
+      "jp": "お兄ちゃん",
+      "romaji": "onii-chan",
+      "meaning": "irmão mais velho; forma carinhosa de chamar",
+      "category": "família"
+    },
+    {
+      "jp": "日本語",
+      "romaji": "nihongo",
+      "meaning": "língua japonesa",
+      "category": "substantivo"
+    },
+    {
+      "jp": "先生",
+      "romaji": "sensei",
+      "meaning": "professor; professora",
+      "category": "substantivo"
+    },
+    {
+      "jp": "本",
+      "romaji": "hon",
+      "meaning": "livro",
+      "category": "substantivo"
+    },
+    {
+      "jp": "人",
+      "romaji": "hito",
+      "meaning": "pessoa",
+      "category": "substantivo"
+    },
+    {
+      "jp": "バス",
+      "romaji": "basu",
+      "meaning": "ônibus",
+      "category": "substantivo"
+    },
+    {
+      "jp": "部屋",
+      "romaji": "heya",
+      "meaning": "quarto; cômodo",
+      "category": "substantivo"
+    },
+    {
+      "jp": "今日",
+      "romaji": "kyou",
+      "meaning": "hoje",
+      "category": "tempo"
+    },
+    {
+      "jp": "明日",
+      "romaji": "ashita",
+      "meaning": "amanhã",
+      "category": "tempo"
+    },
+    {
+      "jp": "昨日",
+      "romaji": "kinou",
+      "meaning": "ontem",
+      "category": "tempo"
+    },
+    {
+      "jp": "今",
+      "romaji": "ima",
+      "meaning": "agora",
+      "category": "tempo"
+    },
+    {
+      "jp": "最近",
+      "romaji": "saikin",
+      "meaning": "recentemente",
+      "category": "tempo"
+    },
+    {
+      "jp": "昔",
+      "romaji": "mukashi",
+      "meaning": "antigamente",
+      "category": "tempo"
+    },
+    {
+      "jp": "未来",
+      "romaji": "mirai",
+      "meaning": "futuro",
+      "category": "tempo"
+    },
+    {
+      "jp": "過去",
+      "romaji": "kako",
+      "meaning": "passado",
+      "category": "tempo"
+    },
+    {
+      "jp": "ありがとう",
+      "romaji": "arigatou",
+      "meaning": "obrigado; obrigada",
+      "category": "expressão"
+    },
+    {
+      "jp": "はい",
+      "romaji": "hai",
+      "meaning": "sim",
+      "category": "resposta"
+    },
+    {
+      "jp": "うん",
+      "romaji": "un",
+      "meaning": "sim; uhum (casual)",
+      "category": "resposta"
+    },
+    {
+      "jp": "いいえ",
+      "romaji": "iie",
+      "meaning": "não (educado)",
+      "category": "resposta"
+    },
+    {
+      "jp": "いや",
+      "romaji": "iya",
+      "meaning": "não; não quero (casual)",
+      "category": "resposta"
+    },
+    {
+      "jp": "ちょっと待って",
+      "romaji": "chotto matte",
+      "meaning": "espera um pouco",
+      "category": "expressão"
+    },
+    {
+      "jp": "まじで",
+      "romaji": "maji de",
+      "meaning": "sério?; de verdade?",
+      "category": "gíria"
+    },
+    {
+      "jp": "やばい",
+      "romaji": "yabai",
+      "meaning": "caramba; incrível; perigoso (depende do contexto)",
+      "category": "gíria"
+    },
+    {
+      "jp": "うるさい",
+      "romaji": "urusai",
+      "meaning": "barulhento; cala a boca (depende do tom)",
+      "category": "expressão"
+    },
+    {
+      "jp": "かわいい",
+      "romaji": "kawaii",
+      "meaning": "fofo; fofo(a); adorável",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "かっこいい",
+      "romaji": "kakkoii",
+      "meaning": "maneiro; estiloso; bonito de forma atraente",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "すごい",
+      "romaji": "sugoi",
+      "meaning": "incrível; impressionante; muito bom",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "とても",
+      "romaji": "totemo",
+      "meaning": "muito",
+      "category": "intensificador"
+    },
+    {
+      "jp": "めっちゃ",
+      "romaji": "meccha",
+      "meaning": "muito; pra caramba (coloquial)",
+      "category": "gíria"
+    },
+    {
+      "jp": "大好き",
+      "romaji": "daisuki",
+      "meaning": "gostar muito; amar (conforme contexto)",
+      "category": "gostos"
+    },
+    {
+      "jp": "好き",
+      "romaji": "suki",
+      "meaning": "gostar; ser do agrado",
+      "category": "gostos"
+    },
+    {
+      "jp": "嫌い",
+      "romaji": "kirai",
+      "meaning": "não gostar; detestar",
+      "category": "gostos"
+    },
+    {
+      "jp": "楽しい",
+      "romaji": "tanoshii",
+      "meaning": "divertido; prazeroso",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "面白い",
+      "romaji": "omoshiroi",
+      "meaning": "interessante; divertido",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "元気",
+      "romaji": "genki",
+      "meaning": "bem; saudável; animado",
+      "category": "estado"
+    },
+    {
+      "jp": "怖い",
+      "romaji": "kowai",
+      "meaning": "assustador; ter medo",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "寂しい",
+      "romaji": "sabishii",
+      "meaning": "solitário; sentir saudade",
+      "category": "estado"
+    },
+    {
+      "jp": "恥ずかしい",
+      "romaji": "hazukashii",
+      "meaning": "vergonhoso; estar com vergonha",
+      "category": "estado"
+    },
+    {
+      "jp": "困る",
+      "romaji": "komaru",
+      "meaning": "ficar em apuros; não saber o que fazer",
+      "category": "verbo"
+    },
+    {
+      "jp": "悩む",
+      "romaji": "nayamu",
+      "meaning": "preocupar-se; ficar em dúvida",
+      "category": "verbo"
+    },
+    {
+      "jp": "驚く",
+      "romaji": "odoroku",
+      "meaning": "surpreender-se",
+      "category": "verbo"
+    },
+    {
+      "jp": "怒る",
+      "romaji": "okoru",
+      "meaning": "ficar bravo; zangar-se",
+      "category": "verbo"
+    },
+    {
+      "jp": "安心",
+      "romaji": "anshin",
+      "meaning": "alívio; tranquilidade",
+      "category": "estado"
+    },
+    {
+      "jp": "不安",
+      "romaji": "fuan",
+      "meaning": "ansiedade; preocupação; insegurança",
+      "category": "estado"
+    },
+    {
+      "jp": "幸せ",
+      "romaji": "shiawase",
+      "meaning": "felicidade; feliz",
+      "category": "estado"
+    },
+    {
+      "jp": "つらい",
+      "romaji": "tsurai",
+      "meaning": "difícil; doloroso emocionalmente",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "見る",
+      "romaji": "miru",
+      "meaning": "ver; assistir",
+      "category": "verbo"
+    },
+    {
+      "jp": "見ている",
+      "romaji": "miteiru",
+      "meaning": "estar vendo; estar assistindo",
+      "category": "verbo"
+    },
+    {
+      "jp": "食べる",
+      "romaji": "taberu",
+      "meaning": "comer",
+      "category": "verbo"
+    },
+    {
+      "jp": "飲む",
+      "romaji": "nomu",
+      "meaning": "beber",
+      "category": "verbo"
+    },
+    {
+      "jp": "行く",
+      "romaji": "iku",
+      "meaning": "ir",
+      "category": "verbo"
+    },
+    {
+      "jp": "来る",
+      "romaji": "kuru",
+      "meaning": "vir",
+      "category": "verbo"
+    },
+    {
+      "jp": "する",
+      "romaji": "suru",
+      "meaning": "fazer",
+      "category": "verbo"
+    },
+    {
+      "jp": "待つ",
+      "romaji": "matsu",
+      "meaning": "esperar",
+      "category": "verbo"
+    },
+    {
+      "jp": "片付ける",
+      "romaji": "katazukeru",
+      "meaning": "arrumar; organizar",
+      "category": "verbo"
+    },
+    {
+      "jp": "聞く",
+      "romaji": "kiku",
+      "meaning": "ouvir; escutar; perguntar",
+      "category": "verbo"
+    },
+    {
+      "jp": "聞いた",
+      "romaji": "kiita",
+      "meaning": "ouvi; ouviu; perguntou (passado de kiku)",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "話す",
+      "romaji": "hanasu",
+      "meaning": "falar; conversar",
+      "category": "verbo"
+    },
+    {
+      "jp": "言う",
+      "romaji": "iu",
+      "meaning": "dizer",
+      "category": "verbo"
+    },
+    {
+      "jp": "言った",
+      "romaji": "itta",
+      "meaning": "disse",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "教える",
+      "romaji": "oshieru",
+      "meaning": "ensinar; informar",
+      "category": "verbo"
+    },
+    {
+      "jp": "学ぶ",
+      "romaji": "manabu",
+      "meaning": "aprender; estudar",
+      "category": "verbo"
+    },
+    {
+      "jp": "忘れる",
+      "romaji": "wasureru",
+      "meaning": "esquecer",
+      "category": "verbo"
+    },
+    {
+      "jp": "覚える",
+      "romaji": "oboeru",
+      "meaning": "memorizar; lembrar-se",
+      "category": "verbo"
+    },
+    {
+      "jp": "分かる",
+      "romaji": "wakaru",
+      "meaning": "entender; compreender",
+      "category": "verbo"
+    },
+    {
+      "jp": "知る",
+      "romaji": "shiru",
+      "meaning": "saber; ficar sabendo",
+      "category": "verbo"
+    },
+    {
+      "jp": "伝える",
+      "romaji": "tsutaeru",
+      "meaning": "transmitir; comunicar",
+      "category": "verbo"
+    },
+    {
+      "jp": "答える",
+      "romaji": "kotaeru",
+      "meaning": "responder",
+      "category": "verbo"
+    },
+    {
+      "jp": "選ぶ",
+      "romaji": "erabu",
+      "meaning": "escolher",
+      "category": "verbo"
+    },
+    {
+      "jp": "探す",
+      "romaji": "sagasu",
+      "meaning": "procurar",
+      "category": "verbo"
+    },
+    {
+      "jp": "見つける",
+      "romaji": "mitsukeru",
+      "meaning": "encontrar",
+      "category": "verbo"
+    },
+    {
+      "jp": "使う",
+      "romaji": "tsukau",
+      "meaning": "usar",
+      "category": "verbo"
+    },
+    {
+      "jp": "始める",
+      "romaji": "hajimeru",
+      "meaning": "começar algo",
+      "category": "verbo"
+    },
+    {
+      "jp": "終わる",
+      "romaji": "owaru",
+      "meaning": "terminar; acabar",
+      "category": "verbo"
+    },
+    {
+      "jp": "やめる",
+      "romaji": "yameru",
+      "meaning": "parar; desistir",
+      "category": "verbo"
+    },
+    {
+      "jp": "助ける",
+      "romaji": "tasukeru",
+      "meaning": "ajudar; socorrer",
+      "category": "verbo"
+    },
+    {
+      "jp": "会う",
+      "romaji": "au",
+      "meaning": "encontrar alguém",
+      "category": "verbo"
+    },
+    {
+      "jp": "帰る",
+      "romaji": "kaeru",
+      "meaning": "voltar para casa; retornar",
+      "category": "verbo"
+    },
+    {
+      "jp": "食べた",
+      "romaji": "tabeta",
+      "meaning": "comi; comeu",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "見た",
+      "romaji": "mita",
+      "meaning": "vi; viu",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "行きたい",
+      "romaji": "ikitai",
+      "meaning": "quero ir",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "見たい",
+      "romaji": "mitai",
+      "meaning": "quero ver",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "食べたい",
+      "romaji": "tabetai",
+      "meaning": "quero comer",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "楽しかった",
+      "romaji": "tanoshikatta",
+      "meaning": "foi divertido",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "面白かった",
+      "romaji": "omoshirokatta",
+      "meaning": "foi interessante; foi divertido",
+      "category": "forma verbal"
+    },
+    {
+      "jp": "これ",
+      "romaji": "kore",
+      "meaning": "isto; este/esta aqui",
+      "category": "referência"
+    },
+    {
+      "jp": "それ",
+      "romaji": "sore",
+      "meaning": "isso; esse/essa aí",
+      "category": "referência"
+    },
+    {
+      "jp": "あれ",
+      "romaji": "are",
+      "meaning": "aquilo; aquele/aquela lá",
+      "category": "referência"
+    },
+    {
+      "jp": "ここ",
+      "romaji": "koko",
+      "meaning": "aqui",
+      "category": "lugar"
+    },
+    {
+      "jp": "そこ",
+      "romaji": "soko",
+      "meaning": "aí; nesse lugar",
+      "category": "lugar"
+    },
+    {
+      "jp": "あそこ",
+      "romaji": "asoko",
+      "meaning": "ali; lá",
+      "category": "lugar"
+    },
+    {
+      "jp": "誰",
+      "romaji": "dare",
+      "meaning": "quem",
+      "category": "pergunta"
+    },
+    {
+      "jp": "何",
+      "romaji": "nani",
+      "meaning": "o quê; que",
+      "category": "pergunta"
+    },
+    {
+      "jp": "なんで",
+      "romaji": "nande",
+      "meaning": "por quê?; como assim?",
+      "category": "pergunta"
+    },
+    {
+      "jp": "どうして",
+      "romaji": "doushite",
+      "meaning": "por quê?",
+      "category": "pergunta"
+    },
+    {
+      "jp": "本当に",
+      "romaji": "hontou ni",
+      "meaning": "realmente; de verdade?",
+      "category": "expressão"
+    },
+    {
+      "jp": "多分",
+      "romaji": "tabun",
+      "meaning": "talvez; provavelmente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "きっと",
+      "romaji": "kitto",
+      "meaning": "com certeza; provavelmente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "絶対",
+      "romaji": "zettai",
+      "meaning": "absolutamente; com certeza",
+      "category": "advérbio"
+    },
+    {
+      "jp": "もちろん",
+      "romaji": "mochiron",
+      "meaning": "claro; obviamente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "特に",
+      "romaji": "tokuni",
+      "meaning": "especialmente; particularmente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "ちゃんと",
+      "romaji": "chanto",
+      "meaning": "direito; corretamente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "やっぱり",
+      "romaji": "yappari",
+      "meaning": "afinal; como eu imaginava",
+      "category": "advérbio"
+    },
+    {
+      "jp": "どうやって",
+      "romaji": "douyatte",
+      "meaning": "como?; de que maneira?",
+      "category": "pergunta"
+    },
+    {
+      "jp": "別に",
+      "romaji": "betsu ni",
+      "meaning": "não particularmente; tanto faz (depende do contexto)",
+      "category": "expressão"
+    },
+    {
+      "jp": "ただ",
+      "romaji": "tada",
+      "meaning": "apenas; só",
+      "category": "advérbio"
+    },
+    {
+      "jp": "まだ",
+      "romaji": "mada",
+      "meaning": "ainda",
+      "category": "advérbio"
+    },
+    {
+      "jp": "もう",
+      "romaji": "mou",
+      "meaning": "já; mais (depende do contexto)",
+      "category": "advérbio"
+    },
+    {
+      "jp": "いつも",
+      "romaji": "itsumo",
+      "meaning": "sempre",
+      "category": "frequência"
+    },
+    {
+      "jp": "時々",
+      "romaji": "tokidoki",
+      "meaning": "às vezes",
+      "category": "frequência"
+    },
+    {
+      "jp": "すぐ",
+      "romaji": "sugu",
+      "meaning": "imediatamente; logo",
+      "category": "tempo"
+    },
+    {
+      "jp": "そして",
+      "romaji": "soshite",
+      "meaning": "e então; além disso",
+      "category": "conector"
+    },
+    {
+      "jp": "でも",
+      "romaji": "demo",
+      "meaning": "mas; porém",
+      "category": "conector"
+    },
+    {
+      "jp": "だから",
+      "romaji": "dakara",
+      "meaning": "por isso; portanto",
+      "category": "conector"
+    },
+    {
+      "jp": "それで",
+      "romaji": "sore de",
+      "meaning": "e então; por causa disso",
+      "category": "conector"
+    },
+    {
+      "jp": "じゃあ",
+      "romaji": "jaa",
+      "meaning": "então; nesse caso",
+      "category": "conector"
+    },
+    {
+      "jp": "また",
+      "romaji": "mata",
+      "meaning": "de novo; novamente",
+      "category": "advérbio"
+    },
+    {
+      "jp": "もし",
+      "romaji": "moshi",
+      "meaning": "se (em hipótese)",
+      "category": "conector"
+    },
+    {
+      "jp": "けど",
+      "romaji": "kedo",
+      "meaning": "mas; embora",
+      "category": "conector"
+    },
+    {
+      "jp": "それとも",
+      "romaji": "soretomo",
+      "meaning": "ou; ou então",
+      "category": "conector"
+    },
+    {
+      "jp": "それに",
+      "romaji": "sore ni",
+      "meaning": "além disso",
+      "category": "conector"
+    },
+    {
+      "jp": "例えば",
+      "romaji": "tatoeba",
+      "meaning": "por exemplo",
+      "category": "conector"
+    },
+    {
+      "jp": "つまり",
+      "romaji": "tsumari",
+      "meaning": "ou seja; em resumo",
+      "category": "conector"
+    },
+    {
+      "jp": "なのに",
+      "romaji": "noni",
+      "meaning": "apesar disso; embora",
+      "category": "conector"
+    },
+    {
+      "jp": "だけ",
+      "romaji": "dake",
+      "meaning": "somente; apenas",
+      "category": "partícula"
+    },
+    {
+      "jp": "しか",
+      "romaji": "shika",
+      "meaning": "só; nada além de (usado com negação)",
+      "category": "partícula"
+    },
+    {
+      "jp": "くらい",
+      "romaji": "kurai",
+      "meaning": "aproximadamente; cerca de",
+      "category": "partícula"
+    },
+    {
+      "jp": "など",
+      "romaji": "nado",
+      "meaning": "etc.; coisas como",
+      "category": "partícula"
+    },
+    {
+      "jp": "は",
+      "romaji": "wa",
+      "meaning": "marca o tópico da frase",
+      "category": "partícula"
+    },
+    {
+      "jp": "が",
+      "romaji": "ga",
+      "meaning": "marca o sujeito ou foco da informação",
+      "category": "partícula"
+    },
+    {
+      "jp": "を",
+      "romaji": "o",
+      "meaning": "marca o objeto direto",
+      "category": "partícula"
+    },
+    {
+      "jp": "に",
+      "romaji": "ni",
+      "meaning": "marca destino, tempo ou alvo, conforme contexto",
+      "category": "partícula"
+    },
+    {
+      "jp": "で",
+      "romaji": "de",
+      "meaning": "marca local ou meio de uma ação",
+      "category": "partícula"
+    },
+    {
+      "jp": "の",
+      "romaji": "no",
+      "meaning": "indica posse ou relação, muitas vezes equivalente a 'de'",
+      "category": "partícula"
+    },
+    {
+      "jp": "と",
+      "romaji": "to",
+      "meaning": "e; com; também introduz fala citada",
+      "category": "partícula"
+    },
+    {
+      "jp": "も",
+      "romaji": "mo",
+      "meaning": "também",
+      "category": "partícula"
+    },
+    {
+      "jp": "から",
+      "romaji": "kara",
+      "meaning": "de; desde; porque",
+      "category": "partícula"
+    },
+    {
+      "jp": "まで",
+      "romaji": "made",
+      "meaning": "até",
+      "category": "partícula"
+    },
+    {
+      "jp": "です",
+      "romaji": "desu",
+      "meaning": "cópula/terminação educada",
+      "category": "gramática"
+    },
+    {
+      "jp": "だ",
+      "romaji": "da",
+      "meaning": "cópula informal após substantivos e adjetivos-na",
+      "category": "gramática"
+    },
+    {
+      "jp": "だよ",
+      "romaji": "da yo",
+      "meaning": "afirmação informal enfática",
+      "category": "expressão"
+    },
+    {
+      "jp": "だね",
+      "romaji": "da ne",
+      "meaning": "né; concordância informal",
+      "category": "expressão"
+    },
+    {
+      "jp": "かな",
+      "romaji": "kana",
+      "meaning": "será?; fico pensando...",
+      "category": "expressão"
+    },
+    {
+      "jp": "だろ",
+      "romaji": "daro",
+      "meaning": "não é?; né? (tom de confirmação/desafio)",
+      "category": "expressão"
+    },
+    {
+      "jp": "じゃない",
+      "romaji": "janai",
+      "meaning": "não é; não sou (forma casual em certos contextos)",
+      "category": "gramática"
+    },
+    {
+      "jp": "かわいくない",
+      "romaji": "kawaikunai",
+      "meaning": "não é fofo",
+      "category": "forma negativa"
+    },
+    {
+      "jp": "かっこいい",
+      "romaji": "kakkoii",
+      "meaning": "maneiro; estiloso; atraente",
+      "category": "adjetivo"
+    },
+    {
+      "jp": "お前",
+      "romaji": "omae",
+      "meaning": "você (pode soar rude ou íntimo demais)",
+      "category": "pronome"
+    },
+    {
+      "jp": "俺",
+      "romaji": "ore",
+      "meaning": "eu (informal, masculino e casual)",
+      "category": "pronome"
+    },
+    {
+      "jp": "僕",
+      "romaji": "boku",
+      "meaning": "eu (informal, frequentemente masculino e mais suave)",
+      "category": "pronome"
+    },
+    {
+      "jp": "私",
+      "romaji": "watashi",
+      "meaning": "eu (neutro/educado)",
+      "category": "pronome"
+    },
+    {
+      "jp": "君",
+      "romaji": "kimi",
+      "meaning": "você (depende da relação; pode soar íntimo ou condescendente)",
+      "category": "pronome"
+    },
+    {
+      "jp": "彼",
+      "romaji": "kare",
+      "meaning": "ele; namorado (conforme contexto)",
+      "category": "pronome"
+    },
+    {
+      "jp": "彼女",
+      "romaji": "kanojo",
+      "meaning": "ela; namorada (conforme contexto)",
+      "category": "pronome"
+    },
+    {
+      "jp": "みんな",
+      "romaji": "minna",
+      "meaning": "todo mundo; todos",
+      "category": "pronome"
+    },
+    {
+      "jp": "なんでもない",
+      "romaji": "nan demo nai",
+      "meaning": "não é nada",
+      "category": "expressão"
+    },
+    {
+      "jp": "どうしたの",
+      "romaji": "doushita no",
+      "meaning": "o que aconteceu?",
+      "category": "expressão"
+    },
+    {
+      "jp": "何してるの",
+      "romaji": "nani shiteru no",
+      "meaning": "o que você está fazendo?",
+      "category": "expressão"
+    },
+    {
+      "jp": "もういい",
+      "romaji": "mou ii",
+      "meaning": "já chega; tudo bem, deixa",
+      "category": "expressão"
+    },
+    {
+      "jp": "やめて",
+      "romaji": "yamete",
+      "meaning": "para; pare com isso",
+      "category": "expressão"
+    },
+    {
+      "jp": "待ってくれ",
+      "romaji": "matte kure",
+      "meaning": "espera, por favor (casual e enfático)",
+      "category": "expressão"
+    },
+    {
+      "jp": "そういうこと",
+      "romaji": "sou iu koto",
+      "meaning": "é isso; é esse tipo de coisa",
+      "category": "expressão"
+    },
+    {
+      "jp": "気にしないで",
+      "romaji": "ki ni shinaide",
+      "meaning": "não se preocupa com isso",
+      "category": "expressão"
+    },
+    {
+      "jp": "分かった",
+      "romaji": "wakatta",
+      "meaning": "entendi; entendido",
+      "category": "expressão"
+    },
+    {
+      "jp": "分からない",
+      "romaji": "wakaranai",
+      "meaning": "não entendo; não sei",
+      "category": "expressão"
+    },
+    {
+      "jp": "仕方ない",
+      "romaji": "shikata nai",
+      "meaning": "não tem jeito; fazer o quê",
+      "category": "expressão"
+    },
+    {
+      "jp": "嘘だろ",
+      "romaji": "uso daro",
+      "meaning": "tá brincando; não é possível",
+      "category": "expressão"
+    },
+    {
+      "jp": "まじかよ",
+      "romaji": "maji ka yo",
+      "meaning": "sério isso?; fala sério!",
+      "category": "expressão"
+    },
+    {
+      "jp": "なぜ",
+      "romaji": "naze",
+      "meaning": "por quê? (mais formal/escrito)",
+      "category": "pergunta"
+    },
+    {
+      "jp": "そう",
+      "romaji": "sou",
+      "meaning": "assim; isso mesmo",
+      "category": "resposta"
+    },
+    {
+      "jp": "ね",
+      "romaji": "ne",
+      "meaning": "né; busca concordância",
+      "category": "partícula final"
+    },
+    {
+      "jp": "よ",
+      "romaji": "yo",
+      "meaning": "ênfase; informação afirmada",
+      "category": "partícula final"
+    },
+    {
+      "jp": "か",
+      "romaji": "ka",
+      "meaning": "marca pergunta em certos estilos",
+      "category": "partícula final"
+    },
+    {
+      "jp": "ぞ",
+      "romaji": "zo",
+      "meaning": "ênfase forte e casual, frequentemente masculina",
+      "category": "partícula final"
+    },
+    {
+      "jp": "ぜ",
+      "romaji": "ze",
+      "meaning": "ênfase casual, frequentemente masculina",
+      "category": "partícula final"
+    },
+    {
+      "jp": "かな",
+      "romaji": "kana",
+      "meaning": "expressa dúvida ou pensamento em voz alta",
+      "category": "partícula final"
+    }
+  ]
+}
