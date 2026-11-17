@@ -128,6 +128,17 @@ textarea {resize:vertical;min-height:75px}
 }
 .option.correct {border-color:var(--good)}
 .option.wrong {border-color:var(--bad)}
+
+.material-title{font-size:clamp(2rem,8vw,3.2rem);line-height:1.08;letter-spacing:-.04em;margin:4px 0 14px;color:#f4efff;font-weight:850}
+.material-subtitle{font-size:1.55rem;line-height:1.2;margin:4px 0 12px;color:#d9caff;font-weight:750}
+.material-section{font-size:1.2rem;line-height:1.3;color:#c7b4ff;font-weight:750;margin:4px 0 12px}
+.material-vocab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px}
+.material-word{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;min-height:94px;padding:12px;background:#171326;border:1px solid #59447e;border-radius:12px}
+.material-word strong{font-size:1.15rem;color:#e3d8ff}.material-reading{font-size:.86rem;color:#a99bc7}.material-meaning{font-size:.95rem;color:#8fe0ad}.material-word small{font-size:.7rem;color:#aaa0bd}.material-word.revealed{border-color:#8fe0ad}
+.material-table{width:100%;border-collapse:collapse}.material-table th,.material-table td{padding:9px;text-align:left;border-bottom:1px solid var(--border)}.material-table th{color:#c7b4ff}
+.phrase-card{display:flex;flex-direction:column;gap:9px;padding:13px;background:#171326;border:1px solid #59447e;border-radius:12px}.phrase-japanese{font-size:1.35rem;font-weight:800;color:#e3d8ff}.phrase-reading{color:#aaa0bd}.phrase-reveal{align-self:flex-start}.phrase-translation{color:#8fe0ad;margin:0}
+.flashcard{width:100%;min-height:95px;font-size:1.1rem;font-weight:700;border-color:#8063bb}.flashcard.flipped{color:#8fe0ad;border-color:#8fe0ad}.material-feedback{font-weight:600;color:#c7b4ff}
+
 .word {
   display:flex;
   justify-content:space-between;
@@ -393,143 +404,145 @@ function addMessage(role, content) {
   return div;
 }
 
-function parseVisuals(text) {
-  const style = localStorage.getItem(STORAGE.style) || "gourmet";
-  const container = document.createElement("div");
-  const regex = /\[(SECTION|TIP|LIST|VOCAB|DIALOGUE|TABLE|QUIZ|EXAM)\]([\s\S]*?)\[\/\1\]/gi;
-
-  let last = 0;
-  let match;
-
-  function addText(value) {
-    if(!value.trim()) return;
-    const p = document.createElement("p");
-    p.textContent = value.trim();
-    container.appendChild(p);
+const materialColors = {
+ purple:"#c7b4ff", pink:"#ff9bcf", blue:"#8ecbff", cyan:"#80e5e0",
+ green:"#8fe0ad", yellow:"#ffe08a", orange:"#ffb477", red:"#ff9292",
+ white:"#f4efff", muted:"#aaa0bd"
+};
+function addRichText(parent, raw){
+ const text=String(raw||"");
+ const re=/\*\*([\s\S]+?)\*\*|\[COLOR=(purple|pink|blue|cyan|green|yellow|orange|red|white|muted)\]([\s\S]*?)\[\/COLOR\]/gi;
+ let pos=0,m;
+ while((m=re.exec(text))){
+  if(m.index>pos)parent.appendChild(document.createTextNode(text.slice(pos,m.index)));
+  if(m[1]){
+   const strong=document.createElement("strong");strong.textContent=m[1];parent.appendChild(strong);
+  }else{
+   const span=document.createElement("span");span.textContent=m[3];span.style.color=materialColors[m[2].toLowerCase()];span.style.fontWeight="600";parent.appendChild(span);
   }
-
-  while((match = regex.exec(text)) !== null) {
-    addText(text.slice(last, match.index));
-
-    const type = match[1].toUpperCase();
-    const content = match[2].trim();
-    const box = document.createElement("div");
-    box.className = "visual " + style;
-
-    if(type === "SECTION") {
-      const h = document.createElement("h3");
-      h.textContent = content;
-      box.appendChild(h);
-    }
-
-    if(type === "TIP") {
-      const h = document.createElement("h3");
-      h.textContent = "Dica";
-      const p = document.createElement("p");
-      p.textContent = content;
-      box.append(h,p);
-    }
-
-    if(type === "LIST") {
-      const ul = document.createElement("ul");
-      content.split("\n").filter(Boolean).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item.replace(/^[-•]\s*/, "");
-        ul.appendChild(li);
-      });
-      box.appendChild(ul);
-    }
-
-    if(type === "VOCAB" || type === "TABLE") {
-      const lines = content.split("\n").filter(Boolean);
-      const table = document.createElement("table");
-      table.style.width = "100%";
-      table.style.borderCollapse = "collapse";
-
-      lines.forEach((line,index) => {
-        const tr = document.createElement("tr");
-        line.split("|").forEach(cell => {
-          const td = document.createElement(index === 0 ? "th" : "td");
-          td.textContent = cell.trim();
-          td.style.padding = "8px";
-          td.style.borderBottom = "1px solid var(--border)";
-          tr.appendChild(td);
-        });
-        table.appendChild(tr);
-      });
-
-      box.appendChild(table);
-    }
-
-    if(type === "DIALOGUE") {
-      content.split("\n").filter(Boolean).forEach(line => {
-        const p = document.createElement("p");
-        p.textContent = line;
-        box.appendChild(p);
-      });
-    }
-
-    if(type === "QUIZ" || type === "EXAM") {
-      renderQuestion(box, content);
-    }
-
-    container.appendChild(box);
-    last = regex.lastIndex;
-  }
-
-  addText(text.slice(last));
-  return container;
+  pos=re.lastIndex;
+ }
+ if(pos<text.length)parent.appendChild(document.createTextNode(text.slice(pos)));
 }
-
-function renderQuestion(box, content) {
-  const lines = content.split("\n").map(x => x.trim()).filter(Boolean);
-
-  const question = lines.find(x => x.toLowerCase().startsWith("pergunta:")) || "Pergunta";
-  const answer = lines.find(x => x.toLowerCase().startsWith("resposta:"));
-  const explanation = lines.find(x => x.toLowerCase().startsWith("explicação:"));
-
-  const title = document.createElement("h3");
-  title.textContent = question.replace(/^pergunta:\s*/i, "");
-  box.appendChild(title);
-
-  const options = lines.filter(x => /^[A-D]\)/i.test(x));
-  const feedback = document.createElement("p");
-  feedback.className = "muted";
-
-  const correct = answer ? answer.replace(/^resposta:\s*/i, "").trim().charAt(0).toUpperCase() : "";
-
-  options.forEach(option => {
-    const letter = option.charAt(0).toUpperCase();
-    const button = document.createElement("button");
-    button.className = "option";
-    button.textContent = option;
-
-    button.addEventListener("click", () => {
-      if(button.dataset.answered) return;
-
-      box.querySelectorAll(".option").forEach(b => {
-        b.dataset.answered = "true";
-        b.disabled = true;
-      });
-
-      if(letter === correct) {
-        button.classList.add("correct");
-        feedback.textContent = "Correto! Muito bem!";
-        addXP(10);
-      } else {
-        button.classList.add("wrong");
-        feedback.textContent = "Não foi dessa vez. Resposta correta: " + correct;
-      }
-
-      if(explanation) {
-        feedback.textContent += " " + explanation.replace(/^explicação:\s*/i, "");
-      }
-    });
-
-    box.appendChild(button);
+function makeTextBlock(tag,content,className){
+ const el=document.createElement(tag);el.className=className||"";
+ addRichText(el,content.trim());return el;
+}
+function parseVisuals(rawText){
+ const text=String(rawText||"").replace(/\r\n?/g,"\n");
+ const container=document.createElement("div");
+ const blockRe=/\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD)(?:\s+([^\]]+))?\]([\s\S]*?)\[\/\1\]/gi;
+ let last=0,m;
+ function addParagraph(value){
+  if(!value.trim())return;
+  const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);
+ }
+ while((m=blockRe.exec(text))){
+  addParagraph(text.slice(last,m.index));
+  const type=m[1].toUpperCase(),arg=(m[2]||"").trim(),content=m[3].trim();
+  const box=document.createElement("div");box.className="visual "+(localStorage.getItem(STORAGE.style)||"gourmet");
+  if(type==="TITLE")box.appendChild(makeTextBlock("h1",content,"material-title"));
+  else if(type==="SUBTITLE")box.appendChild(makeTextBlock("h2",content,"material-subtitle"));
+  else if(type==="SECTION")box.appendChild(makeTextBlock("h3",content,"material-section"));
+  else if(type==="TIP"){
+   box.appendChild(makeTextBlock("h3","✦ Dica","material-section"));
+   box.appendChild(makeTextBlock("p",content));
+  }else if(type==="LIST"){
+   const ul=document.createElement("ul");
+   content.split("\n").map(x=>x.trim()).filter(Boolean).forEach(line=>{
+    const li=document.createElement("li");addRichText(li,line.replace(/^[-•]\s*/,""));ul.appendChild(li);
+   });box.appendChild(ul);
+  }else if(type==="VOCAB"||type==="TABLE"){
+   const lines=content.split("\n").map(x=>x.trim()).filter(Boolean);
+   if(lines.length){
+    const headers=lines[0].split("|").map(x=>x.trim());
+    const grid=document.createElement("div");grid.className="material-vocab-grid";
+    if(type==="VOCAB"){
+     lines.slice(1).forEach(line=>{
+      const cells=line.split("|").map(x=>x.trim());if(!cells.length)return;
+      const item=document.createElement("button");item.type="button";item.className="material-word";
+      const jp=document.createElement("strong");jp.textContent=cells[0]||"";
+      const reading=document.createElement("span");reading.className="material-reading";reading.textContent=cells[1]||"";
+      const meaning=document.createElement("span");meaning.className="material-meaning";meaning.textContent=cells.slice(2).join(" | ")||"Toque para revelar";
+      meaning.hidden=true;
+      const hint=document.createElement("small");hint.textContent="Toque para revelar o significado";
+      item.append(jp,reading,meaning,hint);
+      item.addEventListener("click",()=>{meaning.hidden=!meaning.hidden;hint.textContent=meaning.hidden?"Toque para revelar o significado":"Toque para ocultar";item.classList.toggle("revealed",!meaning.hidden);});
+      grid.appendChild(item);
+     });
+    }else{
+     const table=document.createElement("table");table.className="material-table";
+     const thead=document.createElement("thead"),trh=document.createElement("tr");
+     headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;trh.appendChild(th);});thead.appendChild(trh);table.appendChild(thead);
+     const tbody=document.createElement("tbody");
+     lines.slice(1).forEach(line=>{const tr=document.createElement("tr");line.split("|").forEach(v=>{const td=document.createElement("td");td.textContent=v.trim();tr.appendChild(td);});tbody.appendChild(tr);});
+     table.appendChild(tbody);box.appendChild(table);
+    }
+    if(type==="VOCAB")box.appendChild(grid);
+   }
+  }else if(type==="PHRASE"){
+   const parts=content.split("|").map(x=>x.trim());
+   const phrase=document.createElement("div");phrase.className="phrase-card";
+   const jp=makeTextBlock("div",parts[0]||content,"phrase-japanese");
+   phrase.appendChild(jp);
+   if(parts[1])phrase.appendChild(makeTextBlock("div",parts[1],"phrase-reading"));
+   if(parts[2]){
+    const reveal=document.createElement("button");reveal.type="button";reveal.className="phrase-reveal";reveal.textContent="Revelar tradução";
+    const translation=makeTextBlock("p",parts.slice(2).join(" | "),"phrase-translation");translation.hidden=true;
+    reveal.addEventListener("click",()=>{translation.hidden=!translation.hidden;reveal.textContent=translation.hidden?"Revelar tradução":"Ocultar tradução";});
+    phrase.append(reveal,translation);
+   }
+   box.appendChild(phrase);
+  }else if(type==="DIALOGUE"){
+   content.split("\n").filter(Boolean).forEach(line=>box.appendChild(makeTextBlock("p",line)));
+  }else if(type==="QUIZ"||type==="EXAM"){
+   renderQuestion(box,content,type);
+  }else if(type==="FLASHCARDS"){
+   const cards=content.split(/\n(?=Frente:)/i).map(x=>x.trim()).filter(Boolean);
+   cards.forEach(card=>{
+    const parts=card.split(/\n/);const front=parts.find(x=>/^Frente:/i.test(x))?.replace(/^Frente:\s*/i,"")||"";
+    const back=parts.find(x=>/^Verso:/i.test(x))?.replace(/^Verso:\s*/i,"")||"";
+    const el=document.createElement("button");el.type="button";el.className="flashcard";el.textContent=front||"Virar cartão";
+    el.addEventListener("click",()=>{el.classList.toggle("flipped");el.textContent=el.classList.contains("flipped")?back:front;});
+    box.appendChild(el);
+   });
+  }else if(type==="CARD"){
+   box.appendChild(makeTextBlock("h3",arg||"Cartão","material-section"));
+   box.appendChild(makeTextBlock("p",content));
+  }
+  container.appendChild(box);last=blockRe.lastIndex;
+ }
+ addParagraph(text.slice(last));
+ return container;
+}
+function renderQuestion(box,content,type){
+ const lines=content.split("\n").map(x=>x.trim()).filter(Boolean);
+ const questionLine=lines.find(x=>/^(pergunta|question):/i.test(x));
+ const answerLine=lines.find(x=>/^(resposta|answer):/i.test(x));
+ const explanationLine=lines.find(x=>/^(explicação|explicacao|explanation):/i.test(x));
+ const title=makeTextBlock("h3",questionLine?questionLine.replace(/^(pergunta|question):\s*/i,""):(type==="EXAM"?"Questão":"Pergunta"),"material-section");
+ box.appendChild(title);
+ const options=lines.filter(x=>/^[A-D][).:-]\s*/i.test(x));
+ const feedback=document.createElement("p");feedback.className="material-feedback";feedback.setAttribute("aria-live","polite");
+ const correct=answerLine?answerLine.replace(/^(resposta|answer):\s*/i,"").trim().charAt(0).toUpperCase():"";
+ let answered=false;
+ options.forEach(option=>{
+  const letter=option.charAt(0).toUpperCase();
+  const button=document.createElement("button");button.type="button";button.className="option";button.textContent=option;
+  button.addEventListener("click",()=>{
+   if(answered)return;answered=true;
+   box.querySelectorAll(".option").forEach(b=>b.disabled=true);
+   if(correct&&letter===correct){button.classList.add("correct");feedback.textContent="Correto! Muito bem!";addXP(10);}
+   else if(correct){button.classList.add("wrong");const right=options.find(x=>x.charAt(0).toUpperCase()===correct);feedback.textContent="Ainda não! Resposta correta: "+(right||correct);}
+   else{feedback.textContent="Resposta registrada! Peça ao professor para conferir.";}
+   if(explanationLine)feedback.textContent+=" "+explanationLine.replace(/^(explicação|explicacao|explanation):\s*/i,"");
   });
-
-  box.appendChild(feedback);
+  box.appendChild(button);
+ });
+ if(!options.length){
+  const p=makeTextBlock("p",content.replace(/^(pergunta|question):.*$/im,"").trim());box.appendChild(p);
+ }
+ box.appendChild(feedback);
 }
 
 async function sendMessage(){
@@ -633,8 +646,19 @@ Resposta: B
 Explicação: ...
 [/EXAM]
 
-Use esses blocos somente quando forem úteis.
-Não escreva código HTML nas respostas.
+REGRAS DE MONTAGEM VISUAL:
+- Você tem liberdade para compor materiais bonitos e variados. Não deixe tudo como parágrafos simples.
+- Use [TITLE] para título grande, [SUBTITLE] para subtítulo e [SECTION] para seções.
+- Use [COLOR=purple]texto[/COLOR], [COLOR=pink], [COLOR=blue], [COLOR=cyan], [COLOR=green], [COLOR=yellow], [COLOR=orange] ou [COLOR=red] para destacar trechos. Use cores com moderação e apenas os nomes permitidos.
+- Use **negrito** dentro dos blocos.
+- [VOCAB] deve começar com cabeçalho Japonês | Romaji | Significado e depois uma linha por palavra. Cada cartão de vocabulário permite revelar o significado ao tocar.
+- [PHRASE] aceita uma linha no formato Japonês | Romaji | Tradução; a tradução fica escondida até tocar.
+- [FLASHCARDS] aceita cartões separados por linha em branco, cada um com Frente: ... e Verso: ...
+- [QUIZ] e [EXAM] devem conter Pergunta:, alternativas A) a D), Resposta: com a letra correta e Explicação:. A resposta só aparece depois da escolha.
+- [LIST], [TIP], [DIALOGUE] e [TABLE] continuam disponíveis.
+- Coloque cada bloco com sua tag de abertura e fechamento em linhas separadas. Não invente tags nem escreva HTML.
+- Em atividades, faça os elementos realmente interativos e explique ao aluno como tocar/revelar/responder.
+- Varie o layout conforme o conteúdo: títulos grandes, subtítulos, cartões, destaques coloridos, tabelas e listas. Não precisa usar todos os formatos em toda resposta.
 `;
 
 $("send").addEventListener("click",sendMessage);
