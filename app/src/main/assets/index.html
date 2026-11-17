@@ -443,20 +443,20 @@ function repairUnclosedBlocks(source){
  let match;
  while((match=openRe.exec(text))){
   const tag=match[1].toUpperCase(),after=openRe.lastIndex,tail=text.slice(after);
-  if(new RegExp("\\\\[\\\\/"+tag+"\\\\]","i").test(tail))continue;
+  if(new RegExp("\\[\\/"+tag+"\\]","i").test(tail))continue;
   const boundary=new RegExp("^\\s*---\\s*$|^\\[(?:TITLE|SUBTITLE|SECTION|"+tags+")\\]","im").exec(tail);
   const at=boundary?after+boundary.index:text.length;
-  text=text.slice(0,at)+"\\n[/"+tag+"]\\n"+text.slice(at);
+  text=text.slice(0,at)+"\n[/"+tag+"]\n"+text.slice(at);
   openRe.lastIndex=at+tag.length+8;
  }
  return text;
 }
 function parseVisuals(rawText){
- const text=String(rawText||"").replace(/\\r\\n?/g,"\\n");
+ const text=String(rawText||"").replace(/\r\n?/g,"\n");
  const repairedText=repairUnclosedBlocks(text);
- const normalizedText=repairedText.replace(/^\\[(TITLE|SUBTITLE|SECTION)\\][ \\t]*(?!.*\\[\\/\\1\\])(.+)$/gim,(_,tag,content)=>"["+tag+"]"+content.trim()+"[/"+tag+"]");
+ const normalizedText=repairedText.replace(/^\[(TITLE|SUBTITLE|SECTION)\][ \t]*(?!.*\[\/\1\])(.+)$/gim,(_,tag,content)=>"["+tag+"]"+content.trim()+"[/"+tag+"]");
  const container=document.createElement("div");
- const blockRe=/\\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\\s+([^\\]]+))?\\]([\\s\\S]*?)\\[\\/\\1\\]/gi;
+ const blockRe=/\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\s+([^\]]+))?\]([\s\S]*?)\[\/\1\]/gi;
  let last=0,m;
  function addParagraph(value){if(!value.trim())return;const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);}
  while((m=blockRe.exec(normalizedText))){
@@ -467,19 +467,19 @@ function parseVisuals(rawText){
   else if(type==="SUBTITLE")box.appendChild(makeTextBlock("h2",content,"material-subtitle"));
   else if(type==="SECTION")box.appendChild(makeTextBlock("h3",content,"material-section"));
   else if(type==="TIP"){box.appendChild(makeTextBlock("h3","✦ Dica","material-section"));box.appendChild(makeTextBlock("p",content));}
-  else if(type==="LIST"){const ul=document.createElement("ul");content.split("\\n").map(x=>x.trim()).filter(Boolean).forEach(line=>{const li=document.createElement("li");addRichText(li,line.replace(/^[-•]\\s*/,""));ul.appendChild(li);});box.appendChild(ul);}
+  else if(type==="LIST"){const ul=document.createElement("ul");content.split("\n").map(x=>x.trim()).filter(Boolean).forEach(line=>{const li=document.createElement("li");addRichText(li,line.replace(/^[-•]\s*/,""));ul.appendChild(li);});box.appendChild(ul);}
   else if(type==="VOCAB"||type==="TABLE"){
-   const lines=content.split("\\n").map(x=>x.trim()).filter(Boolean);
+   const lines=content.split("\n").map(x=>x.trim()).filter(Boolean);
    if(lines.length){const headers=lines[0].split("|").map(x=>x.trim());
     if(type==="VOCAB"){const grid=document.createElement("div");grid.className="material-vocab-grid";lines.slice(1).forEach(line=>{const cells=line.split("|").map(x=>x.trim());if(!cells.length)return;const item=document.createElement("button");item.type="button";item.className="material-word";const jp=document.createElement("strong");jp.textContent=cells[0]||"";const reading=document.createElement("span");reading.className="material-reading";reading.textContent=cells[1]||"";const meaning=document.createElement("span");meaning.className="material-meaning";meaning.textContent=cells.slice(2).join(" | ")||"Toque para revelar";meaning.hidden=true;const hint=document.createElement("small");hint.textContent="Toque para revelar o significado";item.append(jp,reading,meaning,hint);item.addEventListener("click",()=>{meaning.hidden=!meaning.hidden;hint.textContent=meaning.hidden?"Toque para revelar o significado":"Toque para ocultar";item.classList.toggle("revealed",!meaning.hidden);});grid.appendChild(item);});box.appendChild(grid);}
     else{const table=document.createElement("table");table.className="material-table";const thead=document.createElement("thead"),trh=document.createElement("tr");headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;trh.appendChild(th);});thead.appendChild(trh);table.appendChild(thead);const tbody=document.createElement("tbody");lines.slice(1).forEach(line=>{const tr=document.createElement("tr");line.split("|").forEach(v=>{const td=document.createElement("td");td.textContent=v.trim();tr.appendChild(td);});tbody.appendChild(tr);});table.appendChild(tbody);box.appendChild(table);}
    }
   }else if(type==="PHRASE"){const parts=content.split("|").map(x=>x.trim()),phrase=document.createElement("div");phrase.className="phrase-card";phrase.appendChild(makeTextBlock("div",parts[0]||content,"phrase-japanese"));if(parts[1])phrase.appendChild(makeTextBlock("div",parts[1],"phrase-reading"));if(parts[2]){const reveal=document.createElement("button");reveal.type="button";reveal.className="phrase-reveal";reveal.textContent="Revelar tradução";const translation=makeTextBlock("p",parts.slice(2).join(" | "),"phrase-translation");translation.hidden=true;reveal.addEventListener("click",()=>{translation.hidden=!translation.hidden;reveal.textContent=translation.hidden?"Revelar tradução":"Ocultar tradução";});phrase.append(reveal,translation);}box.appendChild(phrase);
-  }else if(type==="ILLUSTRATION"){const lines=content.split("\\n").map(x=>x.trim()).filter(Boolean),icon=document.createElement("div"),caption=document.createElement("div"),heading=document.createElement("div"),scene=document.createElement("div");icon.className="illustration-icon";icon.textContent=lines[0]||"🎌";caption.className="illustration-caption";heading.textContent=lines[1]||"Visualização";caption.appendChild(heading);if(lines[2]){const detail=document.createElement("small");detail.textContent=lines.slice(2).join(" ");caption.appendChild(detail);}scene.className="material-illustration";scene.append(icon,caption);box.appendChild(scene);
-  }else if(type==="DIALOGUE"){content.split("\\n").filter(Boolean).forEach(line=>box.appendChild(makeTextBlock("p",line)));
+  }else if(type==="ILLUSTRATION"){const lines=content.split("\n").map(x=>x.trim()).filter(Boolean),icon=document.createElement("div"),caption=document.createElement("div"),heading=document.createElement("div"),scene=document.createElement("div");icon.className="illustration-icon";icon.textContent=lines[0]||"🎌";caption.className="illustration-caption";heading.textContent=lines[1]||"Visualização";caption.appendChild(heading);if(lines[2]){const detail=document.createElement("small");detail.textContent=lines.slice(2).join(" ");caption.appendChild(detail);}scene.className="material-illustration";scene.append(icon,caption);box.appendChild(scene);
+  }else if(type==="DIALOGUE"){content.split("\n").filter(Boolean).forEach(line=>box.appendChild(makeTextBlock("p",line)));
   }else if(type==="QUIZ"||type==="EXAM")renderQuestion(box,content,type);
   else if(type==="WRITE")renderWritingQuestion(box,content);
-  else if(type==="FLASHCARDS"){const cards=content.split(/\\n(?=Frente:)/i).map(x=>x.trim()).filter(Boolean);cards.forEach(card=>{const parts=card.split(/\\n/),front=parts.find(x=>/^Frente:/i.test(x))?.replace(/^Frente:\\s*/i,"")||"",back=parts.find(x=>/^Verso:/i.test(x))?.replace(/^Verso:\\s*/i,"")||"",el=document.createElement("button");el.type="button";el.className="flashcard";el.textContent=front||"Virar cartão";el.addEventListener("click",()=>{el.classList.toggle("flipped");el.textContent=el.classList.contains("flipped")?back:front;});box.appendChild(el);});
+  else if(type==="FLASHCARDS"){const cards=content.split(/\n(?=Frente:)/i).map(x=>x.trim()).filter(Boolean);cards.forEach(card=>{const parts=card.split(/\n/),front=parts.find(x=>/^Frente:/i.test(x))?.replace(/^Frente:\s*/i,"")||"",back=parts.find(x=>/^Verso:/i.test(x))?.replace(/^Verso:\s*/i,"")||"",el=document.createElement("button");el.type="button";el.className="flashcard";el.textContent=front||"Virar cartão";el.addEventListener("click",()=>{el.classList.toggle("flipped");el.textContent=el.classList.contains("flipped")?back:front;});box.appendChild(el);});
   }else if(type==="CARD"){box.appendChild(makeTextBlock("h3",arg||"Cartão","material-section"));box.appendChild(makeTextBlock("p",content));}
   container.appendChild(box);last=blockRe.lastIndex;
  }
@@ -490,12 +490,12 @@ function renderWritingQuestion(box,content){
  const question=lines.find(x=>/^(pergunta|question):/i.test(x));
  const answer=lines.find(x=>/^(resposta|resposta esperada|answer|expected answer):/i.test(x));
  const hint=lines.find(x=>/^(dica|hint):/i.test(x));
- box.appendChild(makeTextBlock("h3",question?question.replace(/^(pergunta|question):\\s*/i,""):"Escreva sua resposta","material-section"));
+ box.appendChild(makeTextBlock("h3",question?question.replace(/^(pergunta|question):\s*/i,""):"Escreva sua resposta","material-section"));
  const input=document.createElement("textarea");
  input.placeholder="Digite sua resposta em japonês...";
  input.rows=2;
  box.appendChild(input);
- if(hint)box.appendChild(makeTextBlock("p",hint.replace(/^(dica|hint):\\s*/i,"")));
+ if(hint)box.appendChild(makeTextBlock("p",hint.replace(/^(dica|hint):\s*/i,"")));
  const check=document.createElement("button");check.type="button";check.className="primary";check.textContent="Conferir resposta";
  const feedback=document.createElement("p");feedback.className="material-feedback";feedback.setAttribute("aria-live","polite");
  let checked=false;
@@ -504,8 +504,8 @@ function renderWritingQuestion(box,content){
   const typed=input.value.trim();
   if(!typed){feedback.textContent="Escreva uma resposta primeiro.";return;}
   if(!answer){feedback.textContent="Resposta registrada! Peça ao professor para corrigir.";checked=true;check.disabled=true;return;}
-  const accepted=answer.replace(/^(resposta esperada|resposta|expected answer|answer):\\s*/i,"").split("|").map(v=>v.trim());
-  const normalize=v=>v.toLocaleLowerCase().replace(/[\\s。、.!！?？,，]/g,"");
+  const accepted=answer.replace(/^(resposta esperada|resposta|expected answer|answer):\s*/i,"").split("|").map(v=>v.trim());
+  const normalize=v=>v.toLocaleLowerCase().replace(/[\s。、.!！?？,，]/g,"");
   if(accepted.some(v=>normalize(v)===normalize(typed))){
    feedback.textContent="Correto! Muito bem!";addXP(10);
   }else{
