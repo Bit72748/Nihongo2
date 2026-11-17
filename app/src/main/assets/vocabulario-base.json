@@ -924,12 +924,6 @@
       "category": "forma negativa"
     },
     {
-      "jp": "かっこいい",
-      "romaji": "kakkoii",
-      "meaning": "maneiro; estiloso; atraente",
-      "category": "adjetivo"
-    },
-    {
       "jp": "お前",
       "romaji": "omae",
       "meaning": "você (pode soar rude ou íntimo demais)",
@@ -1095,12 +1089,6 @@
       "jp": "ぜ",
       "romaji": "ze",
       "meaning": "ênfase casual, frequentemente masculina",
-      "category": "partícula final"
-    },
-    {
-      "jp": "かな",
-      "romaji": "kana",
-      "meaning": "expressa dúvida ou pensamento em voz alta",
       "category": "partícula final"
     }
   ]
