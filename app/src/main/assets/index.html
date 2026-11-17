@@ -175,12 +175,7 @@ footer {
   <div class="panel">
     <h2>Professor de japonês</h2>
     <p class="muted">Pergunte, pratique, converse ou peça explicações. Os materiais visuais aparecem automaticamente quando forem úteis.</p>
-    <div id="chat">
-      <div class="message assistant">
-        <strong>Professor</strong>
-        <p>こんにちは! Vamos continuar aprendendo japonês. O que você quer estudar hoje?</p>
-      </div>
-    </div>
+    <div id="chat"></div>
     <textarea id="prompt" placeholder="Ex.: Me ensina a usar 'kara' em frases..."></textarea>
     <div class="row">
       <button class="primary" id="send">Enviar</button>
@@ -234,6 +229,8 @@ footer {
     <h3>Dados do aprendizado</h3>
     <div class="row">
       <button id="exportData">Exportar memória</button>
+      <button id="importData">Importar memória</button>
+      <input id="importFile" type="file" accept="application/json,.json" class="hidden">
       <button id="resetProgress">Reiniciar progresso</button>
     </div>
     <p class="muted">A memória e o vocabulário ficam salvos neste dispositivo.</p>
@@ -301,8 +298,47 @@ Introduzir conteúdos novos gradualmente.
 let memory = localStorage.getItem(STORAGE.memory) || initialMemory;
 let progress = JSON.parse(localStorage.getItem(STORAGE.progress) || '{"xp":0,"messages":0}');
 let words = JSON.parse(localStorage.getItem(STORAGE.words) || "[]");
-let conversation = [];
+let conversation = JSON.parse(localStorage.getItem("nihongoConversation") || "[]");
 let busy = false;
+function saveConversation(){localStorage.setItem("nihongoConversation",JSON.stringify(conversation.slice(-80)));}
+function renderChat(){
+ const chat=$("chat"); chat.innerHTML="";
+ if(!conversation.length){const w=document.createElement("div");w.className="message assistant";w.textContent="こんにちは! Vamos continuar aprendendo japonês. O que você quer estudar hoje?";chat.appendChild(w);return;}
+ conversation.forEach((m,i)=>{
+  const d=document.createElement("div");d.className="message "+(m.role==="user"?"user":"assistant");
+  if(m.role==="assistant")d.appendChild(parseVisuals(m.content));else{const c=document.createElement("div");c.textContent=m.content;d.appendChild(c);}
+  const row=document.createElement("div");row.className="row";row.style.marginTop="9px";
+  const b=document.createElement("button");
+  if(m.role==="user"){b.textContent="Editar resposta";b.onclick=()=>editUserMessage(i);row.appendChild(b);}
+  else if(i>0){b.textContent="Regenerar resposta";b.onclick=()=>regenerateAnswer(i);row.appendChild(b);}
+  if(row.childNodes.length)d.appendChild(row);chat.appendChild(d);
+ });chat.scrollTop=chat.scrollHeight;
+}
+function editUserMessage(i){
+ if(busy||conversation[i]?.role!=="user")return;const bubble=$("chat").children[i];if(!bubble)return;
+ const area=document.createElement("textarea");area.value=conversation[i].content;
+ const row=document.createElement("div");row.className="row";
+ const save=document.createElement("button");save.className="primary";save.textContent="Salvar e regenerar";
+ const cancel=document.createElement("button");cancel.textContent="Cancelar";row.append(save,cancel);bubble.innerHTML="";bubble.append(area,row);
+ cancel.onclick=renderChat;save.onclick=async()=>{const v=area.value.trim();if(!v)return;conversation=conversation.slice(0,i);conversation.push({role:"user",content:v});saveConversation();renderChat();await requestProfessorAnswer();};
+}
+async function regenerateAnswer(i){
+ if(busy||conversation[i]?.role!=="assistant")return;let u=i-1;while(u>=0&&conversation[u].role!=="user")u--;if(u<0)return;
+ conversation=conversation.slice(0,i);saveConversation();renderChat();await requestProfessorAnswer();
+}
+async function requestProfessorAnswer(){
+ if(busy||!conversation.length)return;const key=localStorage.getItem(STORAGE.key);
+ if(!key){addMessage("assistant","Configure sua chave API da Mistral em Ajustes antes de conversar.");return;}
+ busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
+ try{
+  const model=localStorage.getItem(STORAGE.model)||"ministral-8b-latest";
+  const response=await fetch("https://api.mistral.ai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,messages:[{role:"system",content:systemPrompt},...conversation.slice(-24)],temperature:0.7,max_tokens:2500})});
+  const data=await response.json();if(!response.ok)throw new Error(data.message||data.error?.message||"Erro na API: "+response.status);
+  const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
+  conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();
+ }catch(e){loading.textContent="Erro: "+e.message;}
+ finally{busy=false;$("send").disabled=false;$("prompt").focus();}
+}
 
 function saveProgress() {
   localStorage.setItem(STORAGE.progress, JSON.stringify(progress));
@@ -496,75 +532,9 @@ function renderQuestion(box, content) {
   box.appendChild(feedback);
 }
 
-async function sendMessage() {
-  if(busy) return;
-
-  const prompt = $("prompt").value.trim();
-  if(!prompt) return;
-
-  const key = localStorage.getItem(STORAGE.key);
-
-  if(!key) {
-    addMessage("assistant","Você precisa configurar sua chave API da Mistral em Ajustes antes de conversar comigo.");
-    return;
-  }
-
-  $("prompt").value = "";
-  addMessage("user",prompt);
-
-  const loading = addMessage("assistant","Pensando...");
-  busy = true;
-  $("send").disabled = true;
-
-  conversation.push({role:"user",content:prompt});
-
-  try {
-    const model = localStorage.getItem(STORAGE.model) || "ministral-8b-latest";
-
-    const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + key
-      },
-      body:JSON.stringify({
-        model:model,
-        messages:[
-          {role:"system",content:systemPrompt},
-          ...conversation.slice(-16)
-        ],
-        temperature:0.7,
-        max_tokens:2500
-      })
-    });
-
-    const data = await response.json();
-
-    if(!response.ok) {
-      throw new Error(data.message || data.error?.message || "Erro na API: " + response.status);
-    }
-
-    const answer = data.choices?.[0]?.message?.content;
-
-    if(!answer) throw new Error("A API não retornou uma resposta.");
-
-    conversation.push({role:"assistant",content:answer});
-
-    loading.textContent = "";
-    loading.appendChild(parseVisuals(answer));
-
-    progress.messages++;
-    addXP(2);
-    saveProgress();
-
-  } catch(error) {
-    loading.textContent = "Erro: " + error.message;
-    conversation.pop();
-  } finally {
-    busy = false;
-    $("send").disabled = false;
-    $("prompt").focus();
-  }
+async function sendMessage(){
+ if(busy)return;const prompt=$("prompt").value.trim();if(!prompt)return;
+ $("prompt").value="";conversation.push({role:"user",content:prompt});saveConversation();renderChat();await requestProfessorAnswer();
 }
 
 const systemPrompt = `
@@ -654,14 +624,7 @@ $("prompt").addEventListener("keydown",event => {
   }
 });
 
-$("clearChat").addEventListener("click",() => {
-  conversation = [];
-  $("chat").innerHTML = `
-    <div class="message assistant">
-      <strong>Professor</strong>
-      <p>Conversa limpa! Vamos continuar. O que você quer estudar?</p>
-    </div>`;
-});
+$("clearChat").addEventListener("click",()=>{conversation=[];saveConversation();renderChat();});
 
 function renderWords() {
   $("wordList").innerHTML = "";
@@ -734,6 +697,7 @@ $("exportData").addEventListener("click",() => {
     memory,
     progress,
     words,
+    conversation,
     exportedAt:new Date().toISOString()
   };
 
@@ -750,13 +714,26 @@ $("exportData").addEventListener("click",() => {
 
   URL.revokeObjectURL(url);
 });
-
+$("importData").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.memory&&typeof data.memory==="string")memory=data.memory;
+  if(data.progress&&typeof data.progress==="object")progress={xp:Number(data.progress.xp)||0,messages:Number(data.progress.messages)||0};
+  if(Array.isArray(data.words))words=data.words.filter(w=>w&&typeof w.jp==="string"&&typeof w.meaning==="string");
+  if(Array.isArray(data.conversation))conversation=data.conversation.filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.content==="string").slice(-80);
+  localStorage.setItem(STORAGE.memory,memory);localStorage.setItem(STORAGE.progress,JSON.stringify(progress));localStorage.setItem(STORAGE.words,JSON.stringify(words));saveConversation();updateProgress();renderWords();renderChat();$("settingsStatus").textContent="Backup importado com sucesso!";
+ }catch(err){$("settingsStatus").textContent="Falha ao importar: "+err.message;}finally{e.target.value="";}
+});
 $("resetProgress").addEventListener("click",() => {
   if(!confirm("Tem certeza que deseja reiniciar o progresso?")) return;
 
   progress = {xp:0,messages:0};
   memory = initialMemory;
   words = [];
+  conversation = [];
+  localStorage.removeItem("nihongoConversation");
 
   localStorage.setItem(STORAGE.memory,memory);
   saveProgress();
@@ -774,6 +751,7 @@ function loadSettings() {
 loadSettings();
 updateProgress();
 renderWords();
+renderChat();
 </script>
 </body>
   </html>
