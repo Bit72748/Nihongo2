@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#100d1d">
-<title>Learn Japanese AI 0.9.3</title>
+<title>Learn Japanese AI 0.9.4</title>
 <style>
 :root {
   --bg:#100d1d;
@@ -138,6 +138,14 @@ textarea {resize:vertical;min-height:75px}
 .material-table{width:100%;border-collapse:collapse}.material-table th,.material-table td{padding:9px;text-align:left;border-bottom:1px solid var(--border)}.material-table th{color:#c7b4ff}
 .phrase-card{display:flex;flex-direction:column;gap:9px;padding:13px;background:#171326;border:1px solid #59447e;border-radius:12px}.phrase-japanese{font-size:1.65rem;font-weight:800;color:#e3d8ff}.phrase-reading{color:#aaa0bd}.phrase-reveal{align-self:flex-start}.phrase-translation{color:#8fe0ad;margin:0}
 .flashcard{width:100%;min-height:125px;font-size:1.1rem;font-weight:700;border-color:#8063bb}.flashcard.flipped{color:#8fe0ad;border-color:#8fe0ad}.material-feedback{font-weight:600;color:#c7b4ff}
+.visual.gourmet{position:relative;overflow:hidden;background:radial-gradient(ellipse at 100% 0%,#59408055 0%,transparent 48%),linear-gradient(145deg,#29203f,#171326 72%);border-color:#7659a8}
+.visual.gourmet:before{content:"";display:block;height:3px;margin:-13px -13px 13px;background:linear-gradient(90deg,#a78bfa,#ff9bcf,#80e5e0)}
+.material-illustration{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:14px;min-height:104px;padding:15px;border:1px solid #7659a8;border-radius:15px;background:radial-gradient(circle at 15% 50%,#a78bfa30,transparent 42%),linear-gradient(120deg,#302448,#1a1628)}
+.illustration-icon{display:grid;place-items:center;width:68px;height:68px;border-radius:20px;background:#a78bfa20;border:1px solid #a78bfa66;font-size:2.35rem}
+.illustration-caption{color:#e8ddff;font-weight:600;line-height:1.45}
+.illustration-caption small{display:block;color:var(--muted);font-weight:400;margin-top:5px}
+.material-word{background:linear-gradient(145deg,#211a34,#151222);box-shadow:0 4px 12px #0002}
+.phrase-card{background:linear-gradient(135deg,#28203d,#171326);border-color:#7659a8}
 
 .word {
   display:flex;
@@ -249,7 +257,7 @@ footer {
 </section>
 </main>
 
-<footer>LEARN JAPANESE AI 0.9.3 · 日本語を学ぼう</footer>
+<footer>LEARN JAPANESE AI 0.9.4 · 日本語を学ぼう</footer>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -343,7 +351,7 @@ async function requestProfessorAnswer(){
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=localStorage.getItem(STORAGE.model)||"ministral-8b-latest";
-  const response=await fetch("https://api.mistral.ai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,messages:[{role:"system",content:systemPrompt},...conversation.slice(-24)],temperature:0.7,max_tokens:2500})});
+  const response=await fetch("https://api.mistral.ai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,messages:[{role:"system",content:systemPrompt},...conversation.slice(-16)],temperature:0.65,max_tokens:1400})});
   const data=await response.json();if(!response.ok)throw new Error(data.message||data.error?.message||"Erro na API: "+response.status);
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
   conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();
@@ -428,19 +436,29 @@ function makeTextBlock(tag,content,className){
  const el=document.createElement(tag);el.className=className||"";
  addRichText(el,content.trim());return el;
 }
-function parseVisuals(rawText){
- const text=String(rawText||"").replace(/\r\n?/g,"\n");
- // O modelo às vezes envia títulos compactos em uma única linha, sem tag de fechamento.
- // Convertemos esses casos para o formato interno antes de interpretar os blocos.
- const normalizedText=text.replace(/^\[(TITLE|SUBTITLE|SECTION)\][ \t]*(?!.*\[\/\1\])(.+)$/gim,
-  (_,tag,content)=>"["+tag+"]"+content.trim()+"[/"+tag+"]");
- const container=document.createElement("div");
- const blockRe=/\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE)(?:\s+([^\]]+))?\]([\s\S]*?)\[\/\1\]/gi;
- let last=0,m;
- function addParagraph(value){
-  if(!value.trim())return;
-  const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);
+function repairUnclosedBlocks(source){
+ let text=source;
+ const tags="TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION";
+ const openRe=new RegExp("^\\[("+tags+")\\][ \\t]*$","gim");
+ let match;
+ while((match=openRe.exec(text))){
+  const tag=match[1].toUpperCase(),after=openRe.lastIndex,tail=text.slice(after);
+  if(new RegExp("\\\\[\\\\/"+tag+"\\\\]","i").test(tail))continue;
+  const boundary=new RegExp("^\\s*---\\s*$|^\\[(?:TITLE|SUBTITLE|SECTION|"+tags+")\\]","im").exec(tail);
+  const at=boundary?after+boundary.index:text.length;
+  text=text.slice(0,at)+"\\n[/"+tag+"]\\n"+text.slice(at);
+  openRe.lastIndex=at+tag.length+8;
  }
+ return text;
+}
+function parseVisuals(rawText){
+ const text=String(rawText||"").replace(/\\r\\n?/g,"\\n");
+ const repairedText=repairUnclosedBlocks(text);
+ const normalizedText=repairedText.replace(/^\\[(TITLE|SUBTITLE|SECTION)\\][ \\t]*(?!.*\\[\\/\\1\\])(.+)$/gim,(_,tag,content)=>"["+tag+"]"+content.trim()+"[/"+tag+"]");
+ const container=document.createElement("div");
+ const blockRe=/\\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\\s+([^\\]]+))?\\]([\\s\\S]*?)\\[\\/\\1\\]/gi;
+ let last=0,m;
+ function addParagraph(value){if(!value.trim())return;const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);}
  while((m=blockRe.exec(normalizedText))){
   addParagraph(normalizedText.slice(last,m.index));
   const type=m[1].toUpperCase(),arg=(m[2]||"").trim(),content=m[3].trim();
@@ -448,78 +466,24 @@ function parseVisuals(rawText){
   if(type==="TITLE")box.appendChild(makeTextBlock("h1",content,"material-title"));
   else if(type==="SUBTITLE")box.appendChild(makeTextBlock("h2",content,"material-subtitle"));
   else if(type==="SECTION")box.appendChild(makeTextBlock("h3",content,"material-section"));
-  else if(type==="TIP"){
-   box.appendChild(makeTextBlock("h3","✦ Dica","material-section"));
-   box.appendChild(makeTextBlock("p",content));
-  }else if(type==="LIST"){
-   const ul=document.createElement("ul");
-   content.split("\n").map(x=>x.trim()).filter(Boolean).forEach(line=>{
-    const li=document.createElement("li");addRichText(li,line.replace(/^[-•]\s*/,""));ul.appendChild(li);
-   });box.appendChild(ul);
-  }else if(type==="VOCAB"||type==="TABLE"){
-   const lines=content.split("\n").map(x=>x.trim()).filter(Boolean);
-   if(lines.length){
-    const headers=lines[0].split("|").map(x=>x.trim());
-    const grid=document.createElement("div");grid.className="material-vocab-grid";
-    if(type==="VOCAB"){
-     lines.slice(1).forEach(line=>{
-      const cells=line.split("|").map(x=>x.trim());if(!cells.length)return;
-      const item=document.createElement("button");item.type="button";item.className="material-word";
-      const jp=document.createElement("strong");jp.textContent=cells[0]||"";
-      const reading=document.createElement("span");reading.className="material-reading";reading.textContent=cells[1]||"";
-      const meaning=document.createElement("span");meaning.className="material-meaning";meaning.textContent=cells.slice(2).join(" | ")||"Toque para revelar";
-      meaning.hidden=true;
-      const hint=document.createElement("small");hint.textContent="Toque para revelar o significado";
-      item.append(jp,reading,meaning,hint);
-      item.addEventListener("click",()=>{meaning.hidden=!meaning.hidden;hint.textContent=meaning.hidden?"Toque para revelar o significado":"Toque para ocultar";item.classList.toggle("revealed",!meaning.hidden);});
-      grid.appendChild(item);
-     });
-    }else{
-     const table=document.createElement("table");table.className="material-table";
-     const thead=document.createElement("thead"),trh=document.createElement("tr");
-     headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;trh.appendChild(th);});thead.appendChild(trh);table.appendChild(thead);
-     const tbody=document.createElement("tbody");
-     lines.slice(1).forEach(line=>{const tr=document.createElement("tr");line.split("|").forEach(v=>{const td=document.createElement("td");td.textContent=v.trim();tr.appendChild(td);});tbody.appendChild(tr);});
-     table.appendChild(tbody);box.appendChild(table);
-    }
-    if(type==="VOCAB")box.appendChild(grid);
+  else if(type==="TIP"){box.appendChild(makeTextBlock("h3","✦ Dica","material-section"));box.appendChild(makeTextBlock("p",content));}
+  else if(type==="LIST"){const ul=document.createElement("ul");content.split("\\n").map(x=>x.trim()).filter(Boolean).forEach(line=>{const li=document.createElement("li");addRichText(li,line.replace(/^[-•]\\s*/,""));ul.appendChild(li);});box.appendChild(ul);}
+  else if(type==="VOCAB"||type==="TABLE"){
+   const lines=content.split("\\n").map(x=>x.trim()).filter(Boolean);
+   if(lines.length){const headers=lines[0].split("|").map(x=>x.trim());
+    if(type==="VOCAB"){const grid=document.createElement("div");grid.className="material-vocab-grid";lines.slice(1).forEach(line=>{const cells=line.split("|").map(x=>x.trim());if(!cells.length)return;const item=document.createElement("button");item.type="button";item.className="material-word";const jp=document.createElement("strong");jp.textContent=cells[0]||"";const reading=document.createElement("span");reading.className="material-reading";reading.textContent=cells[1]||"";const meaning=document.createElement("span");meaning.className="material-meaning";meaning.textContent=cells.slice(2).join(" | ")||"Toque para revelar";meaning.hidden=true;const hint=document.createElement("small");hint.textContent="Toque para revelar o significado";item.append(jp,reading,meaning,hint);item.addEventListener("click",()=>{meaning.hidden=!meaning.hidden;hint.textContent=meaning.hidden?"Toque para revelar o significado":"Toque para ocultar";item.classList.toggle("revealed",!meaning.hidden);});grid.appendChild(item);});box.appendChild(grid);}
+    else{const table=document.createElement("table");table.className="material-table";const thead=document.createElement("thead"),trh=document.createElement("tr");headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;trh.appendChild(th);});thead.appendChild(trh);table.appendChild(thead);const tbody=document.createElement("tbody");lines.slice(1).forEach(line=>{const tr=document.createElement("tr");line.split("|").forEach(v=>{const td=document.createElement("td");td.textContent=v.trim();tr.appendChild(td);});tbody.appendChild(tr);});table.appendChild(tbody);box.appendChild(table);}
    }
-  }else if(type==="PHRASE"){
-   const parts=content.split("|").map(x=>x.trim());
-   const phrase=document.createElement("div");phrase.className="phrase-card";
-   const jp=makeTextBlock("div",parts[0]||content,"phrase-japanese");
-   phrase.appendChild(jp);
-   if(parts[1])phrase.appendChild(makeTextBlock("div",parts[1],"phrase-reading"));
-   if(parts[2]){
-    const reveal=document.createElement("button");reveal.type="button";reveal.className="phrase-reveal";reveal.textContent="Revelar tradução";
-    const translation=makeTextBlock("p",parts.slice(2).join(" | "),"phrase-translation");translation.hidden=true;
-    reveal.addEventListener("click",()=>{translation.hidden=!translation.hidden;reveal.textContent=translation.hidden?"Revelar tradução":"Ocultar tradução";});
-    phrase.append(reveal,translation);
-   }
-   box.appendChild(phrase);
-  }else if(type==="DIALOGUE"){
-   content.split("\n").filter(Boolean).forEach(line=>box.appendChild(makeTextBlock("p",line)));
-  }else if(type==="QUIZ"||type==="EXAM"){
-   renderQuestion(box,content,type);
-  }else if(type==="WRITE"){
-   renderWritingQuestion(box,content);
-  }else if(type==="FLASHCARDS"){
-   const cards=content.split(/\n(?=Frente:)/i).map(x=>x.trim()).filter(Boolean);
-   cards.forEach(card=>{
-    const parts=card.split(/\n/);const front=parts.find(x=>/^Frente:/i.test(x))?.replace(/^Frente:\s*/i,"")||"";
-    const back=parts.find(x=>/^Verso:/i.test(x))?.replace(/^Verso:\s*/i,"")||"";
-    const el=document.createElement("button");el.type="button";el.className="flashcard";el.textContent=front||"Virar cartão";
-    el.addEventListener("click",()=>{el.classList.toggle("flipped");el.textContent=el.classList.contains("flipped")?back:front;});
-    box.appendChild(el);
-   });
-  }else if(type==="CARD"){
-   box.appendChild(makeTextBlock("h3",arg||"Cartão","material-section"));
-   box.appendChild(makeTextBlock("p",content));
-  }
+  }else if(type==="PHRASE"){const parts=content.split("|").map(x=>x.trim()),phrase=document.createElement("div");phrase.className="phrase-card";phrase.appendChild(makeTextBlock("div",parts[0]||content,"phrase-japanese"));if(parts[1])phrase.appendChild(makeTextBlock("div",parts[1],"phrase-reading"));if(parts[2]){const reveal=document.createElement("button");reveal.type="button";reveal.className="phrase-reveal";reveal.textContent="Revelar tradução";const translation=makeTextBlock("p",parts.slice(2).join(" | "),"phrase-translation");translation.hidden=true;reveal.addEventListener("click",()=>{translation.hidden=!translation.hidden;reveal.textContent=translation.hidden?"Revelar tradução":"Ocultar tradução";});phrase.append(reveal,translation);}box.appendChild(phrase);
+  }else if(type==="ILLUSTRATION"){const lines=content.split("\\n").map(x=>x.trim()).filter(Boolean),icon=document.createElement("div"),caption=document.createElement("div"),heading=document.createElement("div"),scene=document.createElement("div");icon.className="illustration-icon";icon.textContent=lines[0]||"🎌";caption.className="illustration-caption";heading.textContent=lines[1]||"Visualização";caption.appendChild(heading);if(lines[2]){const detail=document.createElement("small");detail.textContent=lines.slice(2).join(" ");caption.appendChild(detail);}scene.className="material-illustration";scene.append(icon,caption);box.appendChild(scene);
+  }else if(type==="DIALOGUE"){content.split("\\n").filter(Boolean).forEach(line=>box.appendChild(makeTextBlock("p",line)));
+  }else if(type==="QUIZ"||type==="EXAM")renderQuestion(box,content,type);
+  else if(type==="WRITE")renderWritingQuestion(box,content);
+  else if(type==="FLASHCARDS"){const cards=content.split(/\\n(?=Frente:)/i).map(x=>x.trim()).filter(Boolean);cards.forEach(card=>{const parts=card.split(/\\n/),front=parts.find(x=>/^Frente:/i.test(x))?.replace(/^Frente:\\s*/i,"")||"",back=parts.find(x=>/^Verso:/i.test(x))?.replace(/^Verso:\\s*/i,"")||"",el=document.createElement("button");el.type="button";el.className="flashcard";el.textContent=front||"Virar cartão";el.addEventListener("click",()=>{el.classList.toggle("flipped");el.textContent=el.classList.contains("flipped")?back:front;});box.appendChild(el);});
+  }else if(type==="CARD"){box.appendChild(makeTextBlock("h3",arg||"Cartão","material-section"));box.appendChild(makeTextBlock("p",content));}
   container.appendChild(box);last=blockRe.lastIndex;
  }
- addParagraph(normalizedText.slice(last));
- return container;
+ addParagraph(normalizedText.slice(last));return container;
 }
 function renderWritingQuestion(box,content){
  const lines=content.split("\n").map(x=>x.trim()).filter(Boolean);
@@ -620,13 +584,17 @@ PERSONALIDADE:
 
 MÉTODO:
 - Priorize conversação, compreensão e frases naturais.
-- Use romaji para facilitar a leitura da pronúncia.
-- Apresente japonês original junto quando for útil.
-- Explique partículas e gramática com exemplos simples.
-- Corrija erros explicando o motivo.
+- Use romaji como apoio, mantendo o japonês original.
+- Explique gramática com exemplos simples e corrija erros com clareza.
 - Não faça provas ou quizzes sem necessidade.
-- Não repita conteúdos já dominados sem motivo.
-
+- Seja conciso: normalmente 5 a 8 linhas curtas; em uma lição completa, no máximo 14 linhas.
+- Se usar [TITLE], ele deve ser o primeiro elemento da resposta, antes de saudação, pergunta ou introdução. Use no máximo um título principal.
+- Nunca mostre nomes de tags como texto. Tags são comandos internos: use abertura e fechamento corretamente, em linhas separadas.
+- [DIALOGUE] deve conter apenas falas curtas e naturais, identificadas por A: e B:. Não inclua instruções ao aluno dentro do diálogo. Em conversa guiada, faça uma pergunta que o aluno possa responder diretamente e espere.
+- Use [WRITE] somente para treinar produção escrita ou quando o aluno pedir uma resposta escrita. Nunca use em toda explicação, conversa ou diálogo. Faça uma única tarefa curta e clara, com dica opcional e resposta de referência correta. Inclua alternativas naturais separadas por | quando houver mais de uma resposta válida.
+- Use [QUIZ] para múltipla escolha e [WRITE] para digitação livre. Não misture os dois no mesmo exercício.
+- Use [ILLUSTRATION] quando uma imagem mental ajudar: primeira linha com emoji/símbolo, segunda com legenda curta e terceira opcional com detalhe. A ilustração deve ensinar algo, não ser decoração aleatória.
+- Não repita a pergunta do aluno como introdução longa. Vá direto ao conteúdo e evite repetir conteúdos já dominados.
 MEMÓRIA DO ESTUDANTE:
 ${memory}
 
@@ -683,19 +651,13 @@ Explicação: ...
 [/EXAM]
 
 REGRAS DE MONTAGEM VISUAL:
-- Você tem liberdade para compor materiais bonitos e variados. Não deixe tudo como parágrafos simples.
-- Use [TITLE] para título grande, [SUBTITLE] para subtítulo e [SECTION] para seções. Títulos também podem ser enviados em uma única linha, como [TITLE] Meu título, sem tag de fechamento. Para os demais blocos, use abertura e fechamento.
-- Use [COLOR=purple]texto[/COLOR], [COLOR=pink], [COLOR=blue], [COLOR=cyan], [COLOR=green], [COLOR=yellow], [COLOR=orange] ou [COLOR=red] para destacar trechos. Use cores com moderação e apenas os nomes permitidos.
-- Use **negrito** dentro dos blocos.
-- [VOCAB] deve começar com cabeçalho Japonês | Romaji | Significado e depois uma linha por palavra. Cada cartão de vocabulário permite revelar o significado ao tocar.
-- [PHRASE] aceita uma linha no formato Japonês | Romaji | Tradução; a tradução fica escondida até tocar.
-- [FLASHCARDS] aceita cartões separados por linha em branco, cada um com Frente: ... e Verso: ...
-- [QUIZ] e [EXAM] devem conter Pergunta:, alternativas A) a D), Resposta: com a letra correta e Explicação:. A resposta só aparece depois da escolha.
-- [WRITE] cria uma questão com campo de escrita. Use Pergunta: e Resposta: (aceita respostas alternativas separadas por |); opcionalmente Dica:.
-- [LIST], [TIP], [DIALOGUE] e [TABLE] continuam disponíveis.
-- Coloque cada bloco com sua tag de abertura e fechamento em linhas separadas. Não invente tags nem escreva HTML.
-- Em atividades, faça os elementos realmente interativos e explique ao aluno como tocar/revelar/responder.
-- Varie o layout conforme o conteúdo: títulos grandes, subtítulos, cartões, destaques coloridos, tabelas e listas. Não precisa usar todos os formatos em toda resposta.
+- Crie materiais bonitos e variados sem transformar toda resposta em um mural.
+- [TITLE] deve ser o primeiro elemento absoluto. Se não houver título útil, comece direto sem título.
+- [ILLUSTRATION] usa emoji/símbolo na primeira linha, legenda na segunda e detalhe opcional na terceira.
+- Use cartões, frases em destaque, ilustrações simples, tabelas compactas, cores e mini esquemas quando fizerem sentido.
+- Cada bloco deve ter abertura e fechamento em linhas separadas. Nunca deixe tags abertas nem escreva nomes de tags fora dos blocos.
+- Em atividades, explique como tocar, revelar ou responder em uma frase curta.
+- Varie o design com intenção e mantenha o conteúdo enxuto.
 `;
 
 $("send").addEventListener("click",sendMessage);
