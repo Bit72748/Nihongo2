@@ -441,7 +441,7 @@ function parseVisuals(rawText){
   if(!value.trim())return;
   const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);
  }
- while((m=blockRe.exec(text))){
+ while((m=blockRe.exec(normalizedText))){
   addParagraph(normalizedText.slice(last,m.index));
   const type=m[1].toUpperCase(),arg=(m[2]||"").trim(),content=m[3].trim();
   const box=document.createElement("div");box.className="visual "+(localStorage.getItem(STORAGE.style)||"gourmet");
