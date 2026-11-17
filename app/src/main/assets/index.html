@@ -713,6 +713,7 @@ $("exportData").addEventListener("click",() => {
     progress,
     words,
     conversation,
+    settings:{model:localStorage.getItem(STORAGE.model)||"ministral-8b-latest",style:localStorage.getItem(STORAGE.style)||"gourmet"},
     exportedAt:new Date().toISOString()
   };
 
@@ -738,7 +739,11 @@ $("importFile").addEventListener("change",async e=>{
   if(data.progress&&typeof data.progress==="object")progress={xp:Number(data.progress.xp)||0,messages:Number(data.progress.messages)||0};
   if(Array.isArray(data.words))words=data.words.filter(w=>w&&typeof w.jp==="string"&&typeof w.meaning==="string");
   if(Array.isArray(data.conversation))conversation=data.conversation.filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.content==="string").slice(-80);
-  localStorage.setItem(STORAGE.memory,memory);localStorage.setItem(STORAGE.progress,JSON.stringify(progress));localStorage.setItem(STORAGE.words,JSON.stringify(words));saveConversation();updateProgress();renderWords();renderChat();$("settingsStatus").textContent="Backup importado com sucesso!";
+  if(data.settings&&typeof data.settings==="object"){
+   if(["ministral-8b-latest","mistral-small-latest"].includes(data.settings.model))localStorage.setItem(STORAGE.model,data.settings.model);
+   if(["gourmet","simple"].includes(data.settings.style))localStorage.setItem(STORAGE.style,data.settings.style);
+  }
+  localStorage.setItem(STORAGE.memory,memory);localStorage.setItem(STORAGE.progress,JSON.stringify(progress));localStorage.setItem(STORAGE.words,JSON.stringify(words));saveConversation();loadSettings();updateProgress();renderWords();renderChat();$("settingsStatus").textContent="Backup importado com sucesso!";
  }catch(err){$("settingsStatus").textContent="Falha ao importar: "+err.message;}finally{e.target.value="";}
 });
 $("resetProgress").addEventListener("click",() => {
