@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private String pendingExportJson;
+    private String pendingAuthCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,12 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new android.webkit.WebViewClient() {
             @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                deliverAuthCallback();
+            }
+
+            @Override
             public android.webkit.WebResourceResponse shouldInterceptRequest(
                     WebView view, android.webkit.WebResourceRequest request) {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
@@ -53,9 +60,49 @@ public class MainActivity extends Activity {
         });
 
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+        handleAuthIntent(getIntent());
+    }
+
+    private void handleAuthIntent(Intent intent) {
+        if (intent == null || intent.getData() == null) return;
+        Uri uri = intent.getData();
+        if ("com.nihongo.app".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
+            pendingAuthCallback = uri.toString();
+            deliverAuthCallback();
+        }
+    }
+
+    private void deliverAuthCallback() {
+        if (webView == null || pendingAuthCallback == null) return;
+        String encoded = Base64.encodeToString(pendingAuthCallback.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP);
+        webView.evaluateJavascript("(function(){if(window.handleLingoraAuthCallback){window.handleLingoraAuthCallback(atob(\"" + encoded + "\"));}})();", null);
+        pendingAuthCallback = null;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleAuthIntent(intent);
     }
 
     private class AndroidFiles {
+        @JavascriptInterface
+        public void openExternal(String url) {
+            runOnUiThread(() -> {
+                try {
+                    Uri uri = Uri.parse(url);
+                    String host = uri.getHost() == null ? "" : uri.getHost();
+                    if (!"https".equals(uri.getScheme()) || !(host.endsWith(".supabase.co") || "accounts.google.com".equals(host))) {
+                        throw new IllegalArgumentException("Endereço externo não permitido.");
+                    }
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                } catch (Exception error) {
+                    Toast.makeText(MainActivity.this, "Não foi possível abrir o login: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         @JavascriptInterface
         public void exportJson(String json) {
             runOnUiThread(() -> {
