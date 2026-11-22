@@ -195,7 +195,7 @@ footer {
     <h1><span class="brand-mark">L</span>Lingora AI</h1>
     <small>Seu universo de idiomas começa aqui.</small>
   </div>
-  <div id="xp">0 XP</div>
+  <div class="row" style="align-items:center;flex:0 0 auto"><div id="xp">0 XP</div><button id="accountButton">Entrar</button></div>
 </header>
 
 <nav>
@@ -326,11 +326,68 @@ footer {
   </div>
 </section>
 </main>
+<div id="accountModal" class="transition-modal hidden" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="transition-card"><h3 id="accountTitle">Sua conta Lingora</h3><p id="accountDescription" class="muted">Entre com Google para sincronizar seus cursos e conversas entre dispositivos.</p><button id="googleLogin" class="primary" style="width:100%">Continuar com Google</button><button id="syncNow" style="width:100%;margin-top:8px">Sincronizar agora</button><button id="signOut" style="width:100%;margin-top:8px">Sair da conta</button><button id="closeAccount" style="width:100%;margin-top:8px">Fechar</button><p id="accountStatus" class="muted" aria-live="polite"></p></div></div>
 
 <footer>LINGORA AI 1.0 · Seu universo de idiomas</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const $ = id => document.getElementById(id);
+const SUPABASE_URL="https://ziqmqbcpbbdhagrxmnpb.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_-xIcbnpS52Ltqkr3C_KaOA_Kiys3ZmH";
+const supabaseClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"implicit",detectSessionInUrl:false,persistSession:true,autoRefreshToken:true}});
+let cloudSyncBusy=false;
+function accountStatus(message){$("accountStatus").textContent=message;}
+async function refreshAccountUI(){
+ if(!supabaseClient){$("accountButton").textContent="Conta";$("accountDescription").textContent="Não foi possível carregar o módulo de autenticação. Verifique sua conexão.";return;}
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ $("accountButton").textContent=session?.user?.email?.split("@")[0]||"Entrar";
+ $("accountDescription").textContent=session?.user?.email?"Conectado como "+session.user.email+". Seus dados podem ser sincronizados na nuvem.":"Entre com Google para sincronizar seus cursos e conversas entre dispositivos.";
+ $("googleLogin").classList.toggle("hidden",!!session);$("syncNow").classList.toggle("hidden",!session);$("signOut").classList.toggle("hidden",!session);
+}
+async function loginWithGoogle(){
+ if(!supabaseClient){accountStatus("Biblioteca de autenticação indisponível.");return;}
+ accountStatus("Abrindo o Google…");
+ const {data,error}=await supabaseClient.auth.signInWithOAuth({provider:"google",options:{redirectTo:"com.nihongo.app://auth/callback",skipBrowserRedirect:true}});
+ if(error){accountStatus("Falha no login: "+error.message);return;}
+ if(data?.url&&window.AndroidFiles?.openExternal){window.AndroidFiles.openExternal(data.url);}
+ else if(data?.url){window.location.href=data.url;}
+ else accountStatus("Não foi possível iniciar o login.");
+}
+window.handleLingoraAuthCallback=async function(uri){
+ try{const url=new URL(uri);const p=new URLSearchParams(url.hash.replace(/^#/,""));const access_token=p.get("access_token"),refresh_token=p.get("refresh_token");
+  if(!access_token||!refresh_token)throw new Error("O Google não retornou os tokens da sessão.");
+  const {error}=await supabaseClient.auth.setSession({access_token,refresh_token});if(error)throw error;
+  $("accountModal").classList.remove("hidden");accountStatus("Login concluído! Preparando sincronização…");await refreshAccountUI();await syncCloud();accountStatus("Conta conectada e sincronizada.");
+ }catch(e){$("accountModal").classList.remove("hidden");accountStatus("Não foi possível concluir o login: "+e.message);}
+};
+async function syncCloud(){
+ if(cloudSyncBusy||!supabaseClient)return;cloudSyncBusy=true;
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();if(!session)throw new Error("Entre com Google antes de sincronizar.");
+  const {data:remote,error}=await supabaseClient.from("conversations").select("id,title,language_code,learning_method,created_at,updated_at,messages(id,role,content,created_at)").order("updated_at",{ascending:false});
+  if(error)throw error;
+  const known=new Set(chats.map(c=>c.cloud_id).filter(Boolean));
+  (remote||[]).forEach(row=>{if(known.has(row.id))return;chats.push({id:"cloud-"+row.id,cloud_id:row.id,language:row.language_code||"ja",method:row.learning_method||"adaptive",title:row.title||"Conversa",createdAt:new Date(row.created_at).getTime(),updatedAt:new Date(row.updated_at).getTime(),messages:(row.messages||[]).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).map(m=>({role:m.role,content:m.content}))});});
+  for(const chat of chats){
+   let cloudId=chat.cloud_id;
+   const row={user_id:session.user.id,title:chat.title||"Nova conversa",language_code:chat.language||"ja",learning_method:chat.method||"adaptive",updated_at:new Date(chat.updatedAt||Date.now()).toISOString()};
+   if(cloudId){const {error:e}=await supabaseClient.from("conversations").update(row).eq("id",cloudId);if(e)throw e;}
+   else{const {data:d,error:e}=await supabaseClient.from("conversations").insert(row).select("id").single();if(e)throw e;cloudId=d.id;chat.cloud_id=cloudId;}
+   const {error:delErr}=await supabaseClient.from("messages").delete().eq("conversation_id",cloudId);if(delErr)throw delErr;
+   if(chat.messages?.length){const rows=chat.messages.slice(-100).map(m=>({conversation_id:cloudId,role:m.role,content:m.content}));const {error:insErr}=await supabaseClient.from("messages").insert(rows);if(insErr)throw insErr;}
+  }
+  persistChats();renderChatList();
+ }catch(e){throw e;}finally{cloudSyncBusy=false;}
+}
+async function signOutLingora(){if(!supabaseClient)return;const {error}=await supabaseClient.auth.signOut();if(error){accountStatus(error.message);return;}await refreshAccountUI();accountStatus("Você saiu da conta. Os dados locais continuam neste dispositivo.");}
+$("accountButton").addEventListener("click",()=>{$("accountModal").classList.remove("hidden");refreshAccountUI();});
+$("googleLogin").addEventListener("click",loginWithGoogle);
+$("syncNow").addEventListener("click",async()=>{try{accountStatus("Sincronizando…");await syncCloud();accountStatus("Sincronização concluída.");}catch(e){accountStatus("Falha ao sincronizar: "+e.message);}});
+$("signOut").addEventListener("click",signOutLingora);
+$("closeAccount").addEventListener("click",()=>$("accountModal").classList.add("hidden"));
+supabaseClient?.auth.onAuthStateChange((_event,session)=>{refreshAccountUI();});
+refreshAccountUI();
 
 const STORAGE = {
   key:"nihongoMistralKey",
@@ -536,17 +593,17 @@ function getProviderKey(provider){
  return localStorage.getItem(provider==="groq"?STORAGE.groqKey:STORAGE.key)||"";
 }
 async function callChatAPI(provider,key,model,payload){
- const endpoint=provider==="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://api.mistral.ai/v1/chat/completions";
- const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,...payload})});
- const data=await response.json();
- if(!response.ok)throw new Error(data.error?.message||data.message||"Erro na API: "+response.status);
+ if(!supabaseClient)throw new Error("Não foi possível iniciar o serviço de conta.");
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session)throw new Error("Entre com Google para conversar com o professor.");
+ const {data,error}=await supabaseClient.functions.invoke("lingora-tutor",{body:{model,messages:payload.messages}});
+ if(error)throw new Error(error.message||"Falha ao chamar o professor.");
+ if(data?.code==="AI_PROVIDER_NOT_CONFIGURED")throw new Error(data.error);
  return data;
 }
 async function requestProfessorAnswer(){
  if(busy||!conversation.length)return;
- const provider=getActiveProvider();
- const key=getProviderKey(provider);
- if(!key){addMessage("assistant","Configure sua chave API da "+(provider==="groq"?"Groq":"Mistral")+" em Ajustes antes de conversar.");return;}
+ const provider="groq";const key="server-managed";
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
@@ -561,7 +618,7 @@ async function requestProfessorAnswer(){
    loading.textContent="Groq indisponível. Resposta gerada pela Mistral.";
   }
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
-  conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();
+  conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();if(supabaseClient?.auth)syncCloud().catch(e=>accountStatus("Falha ao sincronizar: "+e.message));
  }catch(e){loading.textContent="Erro: "+e.message;}
  finally{busy=false;$("send").disabled=false;$("prompt").focus();}
 }
@@ -754,7 +811,7 @@ function renderQuestion(box,content,type){
 
 async function sendMessage(){
  if(busy)return;const prompt=$("prompt").value.trim();if(!prompt)return;
- $("prompt").value="";conversation.push({role:"user",content:prompt});saveConversation();renderChat();await requestProfessorAnswer();
+ $("prompt").value="";conversation.push({role:"user",content:prompt});saveConversation();renderChat();if(supabaseClient?.auth)syncCloud().catch(()=>{});await requestProfessorAnswer();
 }
 
 const courseMaterial = [
