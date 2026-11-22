@@ -670,10 +670,9 @@ async function syncCloud(){
   if(learnerReadError)throw learnerReadError;
   if(learnerRemote?.courses&&typeof learnerRemote.courses==="object"){
    const remoteEnrolled=learnerRemote.courses._settings?.enrolledLanguages;
-   if(Array.isArray(remoteEnrolled)){
-    let localEnrolled=[];try{localEnrolled=JSON.parse(localStorage.getItem("lingoraEnrolledLanguages")||"[]");}catch(_){}
-    const mergedEnrolled=[...new Set([...remoteEnrolled,...(Array.isArray(localEnrolled)?localEnrolled:[])])].filter(id=>languages.some(l=>l.id===id));
-    if(mergedEnrolled.length)localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify(mergedEnrolled));
+   if(Array.isArray(remoteEnrolled)&&!localStorage.getItem("lingoraEnrolledLanguages")){
+    const validRemote=remoteEnrolled.filter(id=>languages.some(l=>l.id===id));
+    if(validRemote.length)localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify(validRemote));
    }
    for(const [code,course] of Object.entries(learnerRemote.courses)){
     if(!course||typeof course!=="object")continue;
@@ -1535,6 +1534,7 @@ $("saveSettings").addEventListener("click",() => {
   localStorage.setItem(STORAGE.model,$("model").value);
   localStorage.setItem(STORAGE.style,$("visualStyle").value);
   savePersonalSettings();
+  if(supabaseClient?.auth)syncCloud().catch(e=>accountStatus("Falha ao sincronizar: "+e.message));
   $("settingsStatus").textContent="Preferências salvas e aplicadas!";
 });
 
