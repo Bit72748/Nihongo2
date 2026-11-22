@@ -817,7 +817,7 @@ async function requestProfessorAnswer(){
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=$("model").value||"openai/gpt-oss-20b";
-  const payload={messages:[{role:"system",content:getCurrentSystemPrompt()+"\\n\\n"+getTeacherPreferencePrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
+  const payload={messages:[{role:"system",content:getCurrentSystemPrompt()+"\n\n"+getTeacherPreferencePrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   const data=await callChatAPI(provider,key,model,payload);
   if(data?.error)throw new Error(data.error.message||data.error);
   let answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
@@ -1312,7 +1312,9 @@ function applyPersonalSettings(){
  const get=id=>localStorage.getItem("lingoraSetting_"+id);
  const font={small:.9,normal:1,large:1.12,xlarge:1.25}[get("font")||"normal"]||1;
  document.documentElement.style.setProperty("--font-scale",font);
- document.body.classList.toggle("theme-light",get("theme")==="light");
+ const theme=get("theme")||"dark";
+ const systemLight=theme==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;
+ document.body.classList.toggle("theme-light",theme==="light"||systemLight);
  document.body.classList.toggle("reduce-motion",get("motion")==="true");
  document.body.classList.toggle("high-contrast",get("contrast")==="true");
  document.body.classList.toggle("comfortable-spacing",get("spacing")==="true");
