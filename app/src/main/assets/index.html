@@ -522,7 +522,9 @@ body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
         <p class="muted">Escolha entre várias línguas. Você poderá mudar isso depois.</p>
         <input id="languageSearch" type="search" placeholder="Buscar idioma...">
         <div id="languageOptions" class="language-options" aria-label="Selecione os idiomas"></div>
-        <p class="selection-hint" id="languageSelectionHint">Você pode marcar várias línguas. A primeira selecionada será o chat inicial.</p>
+        <p class="selection-hint" id="languageSelectionHint">Marque todas as línguas que deseja estudar.</p>
+        <label for="primaryLanguageChoice">Idioma deste novo chat</label>
+        <select id="primaryLanguageChoice"></select>
         <select id="languageChoice" class="hidden" aria-hidden="true"></select>
         <button class="primary" id="languageNext" disabled>Continuar</button>
       </div>
@@ -1289,12 +1291,16 @@ function getEnrolledLanguages(){
 }
 let selectedSetupLanguages=new Set(getEnrolledLanguages());
 function syncSetupLanguageChoice(){
- const first=[...selectedSetupLanguages][0]||"";
+ const choices=[...selectedSetupLanguages],first=choices[0]||"";
+ const primary=$("primaryLanguageChoice"),previous=primary.value;
+ primary.innerHTML="";
+ choices.forEach(id=>{const lang=languages.find(l=>l.id===id);if(!lang)return;const option=document.createElement("option");option.value=id;option.textContent=lang.name+" · "+lang.native;primary.appendChild(option);});
+ primary.value=choices.includes(previous)?previous:first;
  $("languageChoice").innerHTML="";
- if(first){const option=document.createElement("option");option.value=first;option.textContent=languages.find(l=>l.id===first)?.name||first;$("languageChoice").appendChild(option);}
- $("languageChoice").value=first;
- $("languageNext").disabled=!first;
- $("languageSelectionHint").textContent=selectedSetupLanguages.size?selectedSetupLanguages.size+" idioma(s) selecionado(s). O primeiro será aberto como novo chat.":"Selecione pelo menos um idioma para continuar.";
+ if(primary.value){const option=document.createElement("option");option.value=primary.value;option.textContent=languages.find(l=>l.id===primary.value)?.name||primary.value;$("languageChoice").appendChild(option);}
+ $("languageChoice").value=primary.value;
+ $("languageNext").disabled=!choices.length;
+ $("languageSelectionHint").textContent=choices.length?choices.length+" idioma(s) selecionado(s). Cada conversa pode usar um idioma diferente.":"Selecione pelo menos um idioma para continuar.";
 }
 function fillLanguageOptions(filter=""){
  const target=$("languageOptions"),term=filter.trim().toLocaleLowerCase("pt-BR");
@@ -1340,7 +1346,7 @@ document.querySelectorAll(".method-choice").forEach(btn=>btn.addEventListener("c
 }));
 $("languageBack").addEventListener("click",()=>{$("onboardingMethod").classList.add("hidden");$("onboardingLanguage").classList.remove("hidden");});
 $("finishSetup").addEventListener("click",()=>{
- const nextLanguage=[...selectedSetupLanguages][0];const chosen=document.querySelector(".method-choice.selected");if(!nextLanguage||!chosen)return;
+ const nextLanguage=$("primaryLanguageChoice").value;const chosen=document.querySelector(".method-choice.selected");if(!nextLanguage||!chosen)return;
  saveConversation();localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify([...selectedSetupLanguages]));createChat(nextLanguage,chosen.dataset.method);localStorage.setItem("linguaSetupComplete","true");
 });
 $("send").addEventListener("click",sendMessage);
