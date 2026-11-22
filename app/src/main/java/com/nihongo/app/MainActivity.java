@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private String pendingExportJson;
     private String pendingAuthCallback;
+    private boolean pageLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                pageLoaded = true;
                 deliverAuthCallback();
             }
 
@@ -73,7 +75,7 @@ public class MainActivity extends Activity {
     }
 
     private void deliverAuthCallback() {
-        if (webView == null || pendingAuthCallback == null) return;
+        if (webView == null || !pageLoaded || pendingAuthCallback == null) return;
         String encoded = Base64.encodeToString(pendingAuthCallback.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
         webView.evaluateJavascript("(function(){if(window.handleLingoraAuthCallback){window.handleLingoraAuthCallback(atob(\"" + encoded + "\"));}})();", null);
         pendingAuthCallback = null;
