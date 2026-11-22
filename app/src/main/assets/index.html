@@ -359,6 +359,18 @@ async function syncCloud(){
  if(cloudSyncBusy||!supabaseClient)return;cloudSyncBusy=true;
  try{
   const {data:{session}}=await supabaseClient.auth.getSession();if(!session)throw new Error("Entre com Google antes de sincronizar.");
+  const {data:learnerRemote,error:learnerReadError}=await supabaseClient.from("learner_data").select("courses").eq("user_id",session.user.id).maybeSingle();
+  if(learnerReadError)throw learnerReadError;
+  if(learnerRemote?.courses&&typeof learnerRemote.courses==="object"){
+   for(const [code,course] of Object.entries(learnerRemote.courses)){
+    if(!course||typeof course!=="object")continue;
+    if(!localStorage.getItem("linguaMemory_"+code)&&typeof course.memory==="string")localStorage.setItem("linguaMemory_"+code,course.memory);
+    if(!wordsByLanguage[code]&&Array.isArray(course.words))wordsByLanguage[code]=course.words;
+    if(!progressByLanguage[code]&&course.progress&&typeof course.progress==="object")progressByLanguage[code]=course.progress;
+   }
+   localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
+   loadCourseState(currentLanguage);
+  }
   const {data:remote,error}=await supabaseClient.from("conversations").select("id,title,language_code,learning_method,created_at,updated_at,messages(id,role,content,created_at)").order("updated_at",{ascending:false});
   if(error)throw error;
   const known=new Set(chats.map(c=>c.cloud_id).filter(Boolean));
@@ -727,7 +739,7 @@ function parseVisuals(rawText){
  const container=document.createElement("div");
  const blockRe=/\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\s+([^\]]+))?\]([\s\S]*?)\[\/\1\]/gi;
  let last=0,m;
- function addParagraph(value){if(!value.trim())return;const p=document.createElement("p");addRichText(p,value.trim());container.appendChild(p);}
+ function addParagraph(value){const clean=value.replace(/\\[\\/?(?:TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\\s+[^\\]]*)?\\]/gi,"").trim();if(!clean)return;const p=document.createElement("p");addRichText(p,clean);container.appendChild(p);}
  while((m=blockRe.exec(normalizedText))){
   addParagraph(normalizedText.slice(last,m.index));
   const type=m[1].toUpperCase(),arg=(m[2]||"").trim(),content=m[3].trim();
@@ -761,7 +773,7 @@ function renderWritingQuestion(box,content){
  const hint=lines.find(x=>/^(dica|hint):/i.test(x));
  box.appendChild(makeTextBlock("h3",question?question.replace(/^(pergunta|question):\s*/i,""):"Escreva sua resposta","material-section"));
  const input=document.createElement("textarea");
- input.placeholder="Digite sua resposta em japonês...";
+ input.placeholder="Digite sua resposta no formato indicado pelo professor...";
  input.rows=2;
  box.appendChild(input);
  if(hint)box.appendChild(makeTextBlock("p",hint.replace(/^(dica|hint):\s*/i,"")));
@@ -816,7 +828,7 @@ function renderQuestion(box,content,type){
 
 async function sendMessage(){
  if(busy)return;const prompt=$("prompt").value.trim();if(!prompt)return;
- $("prompt").value="";conversation.push({role:"user",content:prompt});saveConversation();renderChat();if(supabaseClient?.auth)syncCloud().catch(()=>{});await requestProfessorAnswer();
+ $("prompt").value="";conversation.push({role:"user",content:prompt});saveConversation();renderChat();await requestProfessorAnswer();
 }
 
 const courseMaterial = [
@@ -856,6 +868,8 @@ MÉTODO:
 - Use romaji como apoio, mantendo o japonês original.
 - Explique gramática com exemplos simples e corrija erros com clareza.
 - Não faça provas ou quizzes sem necessidade.
+- Quando o aluno pedir para aprender como montar palavras ou frases, explique primeiro a estrutura, a função de cada parte e a ordem dos elementos. Monte um exemplo em etapas, mostrando por que cada peça está ali. Só depois proponha uma prática curta.
+- Não responda a pedidos de explicação apenas com um exercício, campo de texto ou múltipla escolha. O exercício é complemento, não substituto da aula.
 - Seja conciso: normalmente 5 a 8 linhas curtas; em uma lição completa, no máximo 14 linhas.
 - Se usar [TITLE], ele deve ser o primeiro elemento da resposta, antes de saudação, pergunta ou introdução. Use no máximo um título principal.
 - Nunca mostre nomes de tags como texto. Tags são comandos internos: use abertura e fechamento corretamente, em linhas separadas.
