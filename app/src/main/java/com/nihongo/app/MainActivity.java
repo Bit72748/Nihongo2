@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("application/json");
-                intent.putExtra(Intent.EXTRA_TITLE, "nihongo-memoria.json");
+                intent.putExtra(Intent.EXTRA_TITLE, "lingora-backup.json");
                 startActivityForResult(intent, REQUEST_EXPORT);
             });
         }
