@@ -669,6 +669,12 @@ async function syncCloud(){
   const {data:learnerRemote,error:learnerReadError}=await supabaseClient.from("learner_data").select("courses").eq("user_id",session.user.id).maybeSingle();
   if(learnerReadError)throw learnerReadError;
   if(learnerRemote?.courses&&typeof learnerRemote.courses==="object"){
+   const remoteEnrolled=learnerRemote.courses._settings?.enrolledLanguages;
+   if(Array.isArray(remoteEnrolled)){
+    let localEnrolled=[];try{localEnrolled=JSON.parse(localStorage.getItem("lingoraEnrolledLanguages")||"[]");}catch(_){}
+    const mergedEnrolled=[...new Set([...remoteEnrolled,...(Array.isArray(localEnrolled)?localEnrolled:[])])].filter(id=>languages.some(l=>l.id===id));
+    if(mergedEnrolled.length)localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify(mergedEnrolled));
+   }
    for(const [code,course] of Object.entries(learnerRemote.courses)){
     if(!course||typeof course!=="object")continue;
     const localMemory=localStorage.getItem("linguaMemory_"+code);
@@ -699,6 +705,8 @@ async function syncCloud(){
   }
   const coursePayload={};
   languages.forEach(l=>{coursePayload[l.id]={memory:localStorage.getItem("linguaMemory_"+l.id)||(l.id==="ja"?localStorage.getItem(STORAGE.memory)||initialMemory:""),words:wordsByLanguage[l.id]||[],progress:progressByLanguage[l.id]||{xp:0,messages:0}};});
+  let enrolledForCloud=[];try{enrolledForCloud=JSON.parse(localStorage.getItem("lingoraEnrolledLanguages")||"[]");}catch(_){}
+  coursePayload._settings={enrolledLanguages:[...new Set([...(Array.isArray(enrolledForCloud)?enrolledForCloud:[]),currentLanguage])].filter(id=>languages.some(l=>l.id===id))};
   const {error:courseError}=await supabaseClient.from("learner_data").upsert({user_id:session.user.id,courses:coursePayload,updated_at:new Date().toISOString()});
   if(courseError)throw courseError;
   persistChats();renderChatList();
