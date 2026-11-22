@@ -1336,7 +1336,7 @@ $("languageSearch").addEventListener("input",e=>fillLanguageOptions(e.target.val
 $("languageNext").addEventListener("click",()=>{
  if(!selectedSetupLanguages.size)return;
  $("onboardingLanguage").classList.add("hidden");$("onboardingMethod").classList.remove("hidden");
- const l=languages.find(x=>x.id===$("languageChoice").value);
+ const l=languages.find(x=>x.id===$("primaryLanguageChoice").value);
  $("methodLanguage").textContent=l.name+" ("+l.native+") · "+l.script;
  $("finishSetup").disabled=!document.querySelector(".method-choice.selected");
 });
