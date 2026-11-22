@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#100d1d">
-<title>Learn Japanese AI 0.9.5</title>
+<title>Lingua Lab 0.10.0</title>
 <style>
 :root {
   --bg:#100d1d;
@@ -126,6 +126,7 @@ textarea {resize:vertical;min-height:75px}
   text-align:left;
   margin:7px 0;
 }
+.method-choice.selected{border-color:var(--accent);background:#493578;box-shadow:0 0 0 1px var(--accent)}
 .option.correct {border-color:var(--good)}
 .option.wrong {border-color:var(--bad)}
 
@@ -176,7 +177,7 @@ footer {
 <body>
 <header>
   <div>
-    <h1>日本語 Nihongo</h1>
+    <h1>🌐 Lingua Lab</h1>
     <small>Seu aprendizado, no seu ritmo.</small>
   </div>
   <div id="xp">0 XP</div>
@@ -192,13 +193,40 @@ footer {
 <main>
 <section id="page-professor">
   <div class="panel">
-    <h2>Professor de japonês</h2>
-    <p class="muted">Pergunte, pratique, converse ou peça explicações. Os materiais visuais aparecem automaticamente quando forem úteis.</p>
-    <div id="chat"></div>
-    <textarea id="prompt" placeholder="Ex.: Me ensina a usar 'kara' em frases..."></textarea>
-    <div class="row">
-      <button class="primary" id="send">Enviar</button>
-      <button id="clearChat">Limpar conversa</button>
+    <h2>Professor de idiomas</h2>
+    <p class="muted">Aprenda no seu ritmo, com um professor que se adapta ao idioma e ao seu jeito de estudar.</p>
+    <div id="onboarding" class="visual gourmet">
+      <div id="onboardingLanguage">
+        <h3>🌍 Qual idioma você quer aprender?</h3>
+        <p class="muted">Escolha entre várias línguas. Você poderá mudar isso depois.</p>
+        <input id="languageSearch" type="search" placeholder="Buscar idioma...">
+        <select id="languageChoice" size="7" aria-label="Escolha um idioma"></select>
+        <button class="primary" id="languageNext">Continuar</button>
+      </div>
+      <div id="onboardingMethod" class="hidden">
+        <h3 id="methodHeading">Como você gostaria de aprender?</h3>
+        <p class="muted" id="methodLanguage"></p>
+        <button class="option method-choice" data-method="speaking">🗣️ Aprender a falar e entender primeiro</button>
+        <button class="option method-choice" data-method="reading">📖 Aprender a ler e escrever primeiro</button>
+        <button class="option method-choice" data-method="adaptive">🧠 Escolher o melhor método para mim</button>
+        <button class="option method-choice" data-method="both">⚖️ Os dois primeiros</button>
+        <div class="row">
+          <button id="languageBack">Voltar</button>
+          <button class="primary" id="finishSetup" disabled>Começar a aprender</button>
+        </div>
+      </div>
+    </div>
+    <div id="classroom" class="hidden">
+      <div class="row" style="align-items:center;margin-bottom:10px">
+        <strong id="activeLanguage"></strong>
+        <button id="changeLanguage">Trocar idioma</button>
+      </div>
+      <div id="chat"></div>
+      <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
+      <div class="row">
+        <button class="primary" id="send">Enviar</button>
+        <button id="clearChat">Limpar conversa</button>
+      </div>
     </div>
   </div>
 </section>
@@ -261,7 +289,7 @@ footer {
 </section>
 </main>
 
-<footer>LEARN JAPANESE AI 0.9.5 · 日本語を学ぼう</footer>
+<footer>LINGUA LAB 0.10.0 · Aprenda idiomas no seu ritmo</footer>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -269,6 +297,8 @@ const $ = id => document.getElementById(id);
 const STORAGE = {
   key:"nihongoMistralKey",
   groqKey:"nihongoGroqKey",
+  language:"linguaCurrentLanguage",
+  method:"linguaLearningMethod",
   provider:"nihongoProvider",
   model:"nihongoModel",
   memory:"nihongoLearnerMemory",
@@ -320,15 +350,89 @@ Evitar repetir conteúdos dominados sem necessidade.
 Introduzir conteúdos novos gradualmente.
 `;
 
+const languages = [
+ {id:"ja",name:"Japonês",native:"日本語",script:"Hiragana, katakana e kanji"},
+ {id:"en",name:"Inglês",native:"English",script:"Alfabeto latino"},
+ {id:"es",name:"Espanhol",native:"Español",script:"Alfabeto latino"},
+ {id:"ko",name:"Coreano",native:"한국어",script:"Hangul"},
+ {id:"zh",name:"Mandarim",native:"中文",script:"Caracteres chineses"},
+ {id:"fr",name:"Francês",native:"Français",script:"Alfabeto latino"},
+ {id:"de",name:"Alemão",native:"Deutsch",script:"Alfabeto latino"},
+ {id:"it",name:"Italiano",native:"Italiano",script:"Alfabeto latino"},
+ {id:"pt",name:"Português",native:"Português",script:"Alfabeto latino"},
+ {id:"ru",name:"Russo",native:"Русский",script:"Alfabeto cirílico"},
+ {id:"ar",name:"Árabe",native:"العربية",script:"Alfabeto árabe"},
+ {id:"hi",name:"Hindi",native:"हिन्दी",script:"Devanágari"},
+ {id:"bn",name:"Bengali",native:"বাংলা",script:"Alfabeto bengali"},
+ {id:"ur",name:"Urdu",native:"اردو",script:"Alfabeto perso-árabe"},
+ {id:"tr",name:"Turco",native:"Türkçe",script:"Alfabeto latino"},
+ {id:"nl",name:"Holandês",native:"Nederlands",script:"Alfabeto latino"},
+ {id:"sv",name:"Sueco",native:"Svenska",script:"Alfabeto latino"},
+ {id:"no",name:"Norueguês",native:"Norsk",script:"Alfabeto latino"},
+ {id:"da",name:"Dinamarquês",native:"Dansk",script:"Alfabeto latino"},
+ {id:"fi",name:"Finlandês",native:"Suomi",script:"Alfabeto latino"},
+ {id:"pl",name:"Polonês",native:"Polski",script:"Alfabeto latino"},
+ {id:"cs",name:"Tcheco",native:"Čeština",script:"Alfabeto latino"},
+ {id:"el",name:"Grego",native:"Ελληνικά",script:"Alfabeto grego"},
+ {id:"he",name:"Hebraico",native:"עברית",script:"Alfabeto hebraico"},
+ {id:"th",name:"Tailandês",native:"ภาษาไทย",script:"Escrita tailandesa"},
+ {id:"vi",name:"Vietnamita",native:"Tiếng Việt",script:"Alfabeto latino com diacríticos"},
+ {id:"id",name:"Indonésio",native:"Bahasa Indonesia",script:"Alfabeto latino"},
+ {id:"ms",name:"Malaio",native:"Bahasa Melayu",script:"Alfabeto latino"},
+ {id:"sw",name:"Suaíli",native:"Kiswahili",script:"Alfabeto latino"},
+ {id:"fa",name:"Persa",native:"فارسی",script:"Alfabeto perso-árabe"},
+ {id:"uk",name:"Ucraniano",native:"Українська",script:"Alfabeto cirílico"},
+ {id:"ta",name:"Tâmil",native:"தமிழ்",script:"Escrita tâmil"},
+ {id:"mr",name:"Marata",native:"मराठी",script:"Devanágari"},
+ {id:"fil",name:"Filipino",native:"Filipino",script:"Alfabeto latino"},
+ {id:"la",name:"Latim",native:"Lingua Latina",script:"Alfabeto latino"}
+];
+let currentLanguage=localStorage.getItem(STORAGE.language)||"ja";
+let currentMethod=localStorage.getItem(STORAGE.method)||"adaptive";
 let memory = localStorage.getItem(STORAGE.memory) || initialMemory;
 let progress = JSON.parse(localStorage.getItem(STORAGE.progress) || '{"xp":0,"messages":0}');
 let words = JSON.parse(localStorage.getItem(STORAGE.words) || "[]");
-let conversation = JSON.parse(localStorage.getItem("nihongoConversation") || "[]");
+let conversation = JSON.parse(localStorage.getItem("linguaConversation_"+currentLanguage) || (currentLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]") || "[]");
 let busy = false;
-function saveConversation(){localStorage.setItem("nihongoConversation",JSON.stringify(conversation.slice(-80)));}
+function saveConversation(){
+ const saved=JSON.stringify(conversation.slice(-80));
+ localStorage.setItem("linguaConversation_"+currentLanguage,saved);
+ if(currentLanguage==="ja")localStorage.setItem("nihongoConversation",saved);
+}
+function selectedLanguage(){return languages.find(x=>x.id===currentLanguage)||languages[0];}
+function methodDescription(){
+ return ({
+  speaking:"Priorize compreensão auditiva, pronúncia e conversação desde o início. Introduza a escrita gradualmente, sem ignorá-la.",
+  reading:"Priorize o sistema de escrita, leitura, vocabulário escrito e produção textual. Inclua pronúncia e escuta como apoio.",
+  adaptive:"Avalie o idioma, os objetivos e as dificuldades do estudante. Escolha a sequência mais eficiente e explique brevemente suas decisões.",
+  both:"Equilibre fala, compreensão auditiva, leitura e escrita desde as primeiras aulas."
+ })[currentMethod]||"Adapte o método ao estudante.";
+}
+function getCurrentSystemPrompt(){
+ if(currentLanguage==="ja")return systemPrompt+"\\n\\nPREFERÊNCIA DE APRENDIZADO:\\n"+methodDescription();
+ const lang=selectedLanguage();
+ const learnerMemory=localStorage.getItem("linguaMemory_"+currentLanguage)||"Ainda não há memória de aprendizado para este idioma. Faça um diagnóstico leve e não presuma conhecimentos.";
+ return `Você é um professor especialista de idiomas no Lingua Lab. Seu idioma de ensino é ${lang.name} (${lang.native}) e o estudante fala português brasileiro.
+IDIOMA-ALVO: ${lang.name}. SISTEMA DE ESCRITA: ${lang.script}.
+MÉTODO ESCOLHIDO: ${methodDescription()}
+REGRAS:
+- Explique em português brasileiro, com linguagem amigável, clara e compacta.
+- Ensine o idioma selecionado, não japonês nem outro idioma por engano.
+- Inclua a escrita original e uma orientação de pronúncia quando útil. Use transliteração apenas como apoio quando o sistema de escrita for diferente do latino.
+- Priorize exemplos naturais, compreensão, pronúncia e situações reais.
+- Corrija erros com gentileza e explique o motivo.
+- Ajuste o nível gradualmente. Não presuma que o aluno é absoluto nem fluente.
+- Respeite a preferência de aprendizado escolhida.
+- Não invente progresso ou palavras que o aluno já domina.
+- Quando houver mais de um sistema de escrita ou variação importante, explique a diferença sem sobrecarregar.
+- Use materiais visuais como [TITLE], [SECTION], [TIP], [LIST], [VOCAB], [DIALOGUE], [TABLE], [QUIZ] e [EXAM] quando ajudarem.
+- Responda normalmente em 5 a 10 linhas curtas, exceto quando uma aula completa exigir mais.
+MEMÓRIA DE APRENDIZADO:
+${learnerMemory}`;
+}
 function renderChat(){
  const chat=$("chat"); chat.innerHTML="";
- if(!conversation.length){const w=document.createElement("div");w.className="message assistant";w.textContent="こんにちは! Vamos continuar aprendendo japonês. O que você quer estudar hoje?";chat.appendChild(w);return;}
+ if(!conversation.length){const w=document.createElement("div");w.className="message assistant";w.textContent=currentLanguage==="ja"?"こんにちは! Vamos continuar aprendendo japonês. O que você quer estudar hoje?":"Olá! Vamos começar a aprender "+selectedLanguage().name+". O que você gostaria de estudar primeiro?";chat.appendChild(w);return;}
  conversation.forEach((m,i)=>{
   const d=document.createElement("div");d.className="message "+(m.role==="user"?"user":"assistant");
   if(m.role==="assistant")d.appendChild(parseVisuals(m.content));else{const c=document.createElement("div");c.textContent=m.content;d.appendChild(c);}
@@ -375,7 +479,7 @@ async function requestProfessorAnswer(){
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
-  const payload={messages:[{role:"system",content:systemPrompt},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
+  const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   let data;
   try{
    data=await callChatAPI(provider,key,model,payload);
@@ -692,6 +796,52 @@ REGRAS DE MONTAGEM VISUAL:
 - Varie o design com intenção e mantenha o conteúdo enxuto.
 `;
 
+function fillLanguageOptions(filter=""){
+ const select=$("languageChoice"),term=filter.trim().toLocaleLowerCase("pt-BR");
+ const matches=languages.filter(l=>(l.name+" "+l.native+" "+l.script).toLocaleLowerCase("pt-BR").includes(term));
+ select.innerHTML="";
+ matches.forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=l.name+" · "+l.native+" · "+l.script;select.appendChild(o);});
+ const wanted=matches.some(l=>l.id===currentLanguage)?currentLanguage:matches[0]?.id;
+ if(wanted)select.value=wanted;
+}
+function showOnboarding(){
+ $("onboarding").classList.remove("hidden");$("classroom").classList.add("hidden");
+ $("onboardingLanguage").classList.remove("hidden");$("onboardingMethod").classList.add("hidden");
+ fillLanguageOptions();
+}
+function updateActiveLanguage(){
+ const l=selectedLanguage();
+ $("activeLanguage").textContent=l.name+" · "+l.native;
+ $("prompt").placeholder="Escreva em português ou "+l.name+"...";
+ $("wordJapanese").placeholder="Palavra em "+l.name;
+ $("wordMeaning").placeholder="Significado em português";
+}
+$("languageSearch").addEventListener("input",e=>fillLanguageOptions(e.target.value));
+$("languageNext").addEventListener("click",()=>{
+ if(!$("languageChoice").value)return;
+ $("onboardingLanguage").classList.add("hidden");$("onboardingMethod").classList.remove("hidden");
+ const l=languages.find(x=>x.id===$("languageChoice").value);
+ $("methodLanguage").textContent=l.name+" ("+l.native+") · "+l.script;
+ $("finishSetup").disabled=!document.querySelector(".method-choice.selected");
+});
+document.querySelectorAll(".method-choice").forEach(btn=>btn.addEventListener("click",()=>{
+ document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));
+ btn.classList.add("selected","active");$("finishSetup").disabled=false;
+}));
+$("languageBack").addEventListener("click",()=>{$("onboardingMethod").classList.add("hidden");$("onboardingLanguage").classList.remove("hidden");});
+$("finishSetup").addEventListener("click",()=>{
+ const nextLanguage=$("languageChoice").value;
+ const chosen=document.querySelector(".method-choice.selected");
+ if(!nextLanguage||!chosen)return;
+ if(nextLanguage!==currentLanguage)saveConversation();
+ currentLanguage=nextLanguage;currentMethod=chosen.dataset.method;
+ localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);
+ conversation=JSON.parse(localStorage.getItem("linguaConversation_"+currentLanguage)||(currentLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]")||"[]");
+ localStorage.setItem("linguaSetupComplete","true");
+ $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");
+ updateActiveLanguage();renderChat();
+});
+$("changeLanguage").addEventListener("click",showOnboarding);
 $("send").addEventListener("click",sendMessage);
 
 $("prompt").addEventListener("keydown",event => {
@@ -917,7 +1067,12 @@ $("provider").addEventListener("change",()=>{
 loadSettings();
 updateProgress();
 renderWords();
-renderChat();
+if(localStorage.getItem("linguaSetupComplete")==="true"){
+ $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();
+}else{
+ fillLanguageOptions();
+ $("classroom").classList.add("hidden");
+}
 </script>
 </body>
   </html>
