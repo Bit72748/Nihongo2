@@ -316,7 +316,7 @@ footer {
       <input id="importFile" type="file" accept="application/json,.json" class="hidden">
       <button id="resetProgress">Reiniciar progresso</button>
     </div>
-    <p class="muted">A memória e o vocabulário ficam salvos neste dispositivo.</p>
+    <p class="muted">A memória, o vocabulário e o progresso ficam salvos no dispositivo e sincronizam com sua conta quando você entra.</p>
   </div>
 </section>
 </main>
@@ -418,6 +418,8 @@ const STORAGE = {
   words:"nihongoWords",
   style:"nihongoVisualStyle"
 };
+localStorage.removeItem(STORAGE.key);
+localStorage.removeItem(STORAGE.groqKey);
 
 const initialMemory = `
 O estudante é brasileiro e está aprendendo japonês.
@@ -569,7 +571,7 @@ function methodDescription(){
 function getCurrentSystemPrompt(){
  if(currentLanguage==="ja")return systemPrompt+"\\n\\nPREFERÊNCIA DE APRENDIZADO:\\n"+methodDescription()+"\\n\\nCONTEXTO DESTA CONVERSA: O idioma-alvo atual é japonês. Se houver uma marca de transição no histórico, ignore o conteúdo anterior para fins de ensino e siga apenas o idioma definido após a transição.";
  const lang=selectedLanguage();
- const learnerMemory=localStorage.getItem("linguaMemory_"+currentLanguage)||"Ainda não há memória de aprendizado para este idioma. Faça um diagnóstico leve e não presuma conhecimentos.";
+ const learnerMemory=memory||"Ainda não há memória de aprendizado para este idioma. Faça um diagnóstico leve e não presuma conhecimentos.";
  return `Você é um professor especialista de idiomas no Lingua Lab. Seu idioma de ensino é ${lang.name} (${lang.native}) e o estudante fala português brasileiro.
 IDIOMA-ALVO: ${lang.name}. SISTEMA DE ESCRITA: ${lang.script}.
 MÉTODO ESCOLHIDO: ${methodDescription()}
@@ -582,6 +584,7 @@ REGRAS:
 - Ajuste o nível gradualmente. Não presuma que o aluno é absoluto nem fluente.
 - Respeite a preferência de aprendizado escolhida.
 - Não invente progresso ou palavras que o aluno já domina.
+- Ao final, inclua [MEMORY_UPDATE] apenas se esta conversa revelar um avanço, dificuldade recorrente ou preferência de estudo útil e duradoura. Registre fatos de aprendizado em português, em no máximo 3 tópicos. Não inclua dados pessoais. Se não houver atualização útil, omita o bloco.
 - Quando houver mais de um sistema de escrita ou variação importante, explique a diferença sem sobrecarregar.
 - Use materiais visuais como [TITLE], [SECTION], [TIP], [LIST], [VOCAB], [DIALOGUE], [TABLE], [QUIZ] e [EXAM] quando ajudarem.
 - Quando o aluno pedir para aprender um assunto, ENSINE primeiro: explique a ideia, mostre como funciona, construa um exemplo passo a passo e só então proponha uma prática curta. Não substitua explicação por quiz, formulário ou exercício.
@@ -643,7 +646,9 @@ async function requestProfessorAnswer(){
   const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   const data=await callChatAPI(provider,key,model,payload);
   if(data?.error)throw new Error(data.error.message||data.error);
-  const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
+  let answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
+  const memoryUpdate=answer.match(/\[MEMORY_UPDATE\]([\s\S]*?)\[\/MEMORY_UPDATE\]/i);
+  if(memoryUpdate){const note=memoryUpdate[1].trim().slice(0,1500);if(note){memory=(memory+"\n\nATUALIZAÇÃO DE APRENDIZADO:\n"+note).slice(-5000);localStorage.setItem("linguaMemory_"+currentLanguage,memory);if(currentLanguage==="ja")localStorage.setItem(STORAGE.memory,memory);}answer=answer.replace(memoryUpdate[0],"").trim();}
   conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();if(supabaseClient?.auth)syncCloud().catch(e=>accountStatus("Falha ao sincronizar: "+e.message));
  }catch(e){loading.textContent="Erro: "+e.message;}
  finally{busy=false;$("send").disabled=false;$("prompt").focus();}
@@ -654,6 +659,7 @@ function saveProgress() {
   localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
   localStorage.setItem(STORAGE.progress,JSON.stringify(progress));
   updateProgress();
+  if(supabaseClient?.auth)syncCloud().catch(()=>{});
 }
 
 function updateProgress() {
@@ -892,6 +898,8 @@ MÉTODO:
 MEMÓRIA DO ESTUDANTE:
 ${memory}
 
+Se houver avanço, dificuldade recorrente ou preferência de estudo útil e duradoura, acrescente ao fim [MEMORY_UPDATE] com até 3 tópicos objetivos em português. Não inclua dados pessoais. Se não houver atualização útil, omita.
+
 Quando o pedido envolver aprendizado, organize a resposta em materiais
 visuais diretamente na conversa, quando isso ajudar.
 Não existe botão separado para criar material visual.
@@ -1056,6 +1064,7 @@ function saveWords() {
   wordsByLanguage[currentLanguage]=words;
   localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));
   localStorage.setItem(STORAGE.words,JSON.stringify(words));
+  if(supabaseClient?.auth)syncCloud().catch(()=>{});
 }
 
 $("loadBaseVocabulary").addEventListener("click",async()=>{
