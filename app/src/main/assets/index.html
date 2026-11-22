@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#100d1d">
-<title>Lingua Lab 0.10.0</title>
+<title>Lingora AI 1.0</title>
 <style>
 :root {
   --bg:#100d1d;
@@ -34,7 +34,22 @@ header {
   align-items:center;
   gap:10px;
 }
-header h1 {margin:0;font-size:22px}
+header h1 {margin:0;font-size:22px;letter-spacing:-.04em}
+.brand-mark{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:12px;margin-right:8px;background:linear-gradient(145deg,#a78bfa,#6d4bc3);box-shadow:0 4px 18px #a78bfa55;color:#fff;font-size:20px;vertical-align:middle}
+.chat-layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px}
+.chat-sidebar{background:#151122;border:1px solid var(--border);border-radius:14px;padding:10px;min-width:0}
+.chat-sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.chat-sidebar-head strong{font-size:13px}
+.chat-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.chat-entry{width:100%;text-align:left;padding:9px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-entry.active{background:#493578;border-color:var(--accent)}
+.chat-workspace{min-width:0}
+.chat-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 12px;background:#151122;border:1px solid var(--border);border-radius:12px}
+.chat-toolbar strong{font-size:14px}
+.transition-modal{position:fixed;inset:0;z-index:20;background:#080611d9;display:grid;place-items:center;padding:20px}
+.transition-card{width:min(100%,420px);background:var(--panel);border:1px solid #7659a8;border-radius:18px;padding:20px;box-shadow:0 20px 70px #0009}
+.transition-card h3{margin-top:0}
+@media(max-width:620px){.chat-layout{grid-template-columns:1fr}.chat-sidebar{order:2}.chat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:150px}.chat-entry{min-width:0}.chat-workspace{order:1}}
 header small {color:var(--muted)}
 nav {
   display:flex;
@@ -177,8 +192,8 @@ footer {
 <body>
 <header>
   <div>
-    <h1>🌐 Lingua Lab</h1>
-    <small>Seu aprendizado, no seu ritmo.</small>
+    <h1><span class="brand-mark">L</span>Lingora AI</h1>
+    <small>Seu universo de idiomas começa aqui.</small>
   </div>
   <div id="xp">0 XP</div>
 </header>
@@ -217,15 +232,38 @@ footer {
       </div>
     </div>
     <div id="classroom" class="hidden">
-      <div class="row" style="align-items:center;margin-bottom:10px">
+      <div class="chat-toolbar">
         <strong id="activeLanguage"></strong>
-        <button id="changeLanguage">Trocar idioma</button>
+        <div class="row" style="flex:0 1 auto">
+          <button id="transitionChat">Transicionar</button>
+          <button id="newChat" class="primary">+ Novo chat</button>
+        </div>
       </div>
-      <div id="chat"></div>
-      <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
-      <div class="row">
-        <button class="primary" id="send">Enviar</button>
-        <button id="clearChat">Limpar conversa</button>
+      <div class="chat-layout" style="margin-top:12px">
+        <aside class="chat-sidebar">
+          <div class="chat-sidebar-head"><strong>Suas conversas</strong></div>
+          <div id="chatList" class="chat-list"></div>
+        </aside>
+        <div class="chat-workspace">
+          <div id="chat"></div>
+          <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
+          <div class="row">
+            <button class="primary" id="send">Enviar</button>
+            <button id="clearChat">Limpar conversa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="transitionModal" class="transition-modal hidden" role="dialog" aria-modal="true" aria-labelledby="transitionTitle">
+      <div class="transition-card">
+        <h3 id="transitionTitle">🌍 Transicionar conversa</h3>
+        <p class="muted">O histórico será preservado. A partir daqui, o professor seguirá o novo idioma sem misturar os cursos.</p>
+        <label for="transitionLanguage">Novo idioma</label>
+        <select id="transitionLanguage"></select>
+        <div class="row">
+          <button id="cancelTransition">Cancelar</button>
+          <button class="primary" id="confirmTransition">Transicionar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -289,7 +327,7 @@ footer {
 </section>
 </main>
 
-<footer>LINGUA LAB 0.10.0 · Aprenda idiomas no seu ritmo</footer>
+<footer>LINGORA AI 1.0 · Seu universo de idiomas</footer>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -387,17 +425,47 @@ const languages = [
  {id:"fil",name:"Filipino",native:"Filipino",script:"Alfabeto latino"},
  {id:"la",name:"Latim",native:"Lingua Latina",script:"Alfabeto latino"}
 ];
-let currentLanguage=localStorage.getItem(STORAGE.language)||"ja";
-let currentMethod=localStorage.getItem(STORAGE.method)||"adaptive";
 let memory = localStorage.getItem(STORAGE.memory) || initialMemory;
 let progress = JSON.parse(localStorage.getItem(STORAGE.progress) || '{"xp":0,"messages":0}');
 let words = JSON.parse(localStorage.getItem(STORAGE.words) || "[]");
-let conversation = JSON.parse(localStorage.getItem("linguaConversation_"+currentLanguage) || (currentLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]") || "[]");
-let busy = false;
+const CHAT_STORE_KEY="lingoraChats";
+let chats=JSON.parse(localStorage.getItem(CHAT_STORE_KEY)||"null");
+if(!Array.isArray(chats)||!chats.length){
+ const legacyLanguage=localStorage.getItem(STORAGE.language)||"ja";
+ const legacyMessages=JSON.parse(localStorage.getItem("linguaConversation_"+legacyLanguage)||(legacyLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]")||"[]");
+ chats=[{id:"chat-"+Date.now(),language:legacyLanguage,method:localStorage.getItem(STORAGE.method)||"adaptive",title:legacyMessages.find(m=>m.role==="user")?.content?.slice(0,34)||"Primeira conversa",messages:legacyMessages,createdAt:Date.now(),updatedAt:Date.now()}];
+ localStorage.setItem(CHAT_STORE_KEY,JSON.stringify(chats));
+}
+let activeChatId=localStorage.getItem("lingoraActiveChat")||chats[0].id;
+let activeChat=chats.find(c=>c.id===activeChatId)||chats[0];
+activeChatId=activeChat.id;
+let currentLanguage=activeChat.language||"ja";
+let currentMethod=activeChat.method||"adaptive";
+let conversation=activeChat.messages||[];
+let busy=false;
+function persistChats(){localStorage.setItem(CHAT_STORE_KEY,JSON.stringify(chats));localStorage.setItem("lingoraActiveChat",activeChatId);}
 function saveConversation(){
- const saved=JSON.stringify(conversation.slice(-80));
- localStorage.setItem("linguaConversation_"+currentLanguage,saved);
- if(currentLanguage==="ja")localStorage.setItem("nihongoConversation",saved);
+ activeChat.messages=conversation.slice(-100);activeChat.updatedAt=Date.now();
+ if(activeChat.title==="Nova conversa"||activeChat.title==="Primeira conversa"){const first=conversation.find(m=>m.role==="user");if(first)activeChat.title=first.content.slice(0,34);}
+ persistChats();renderChatList();
+}
+function renderChatList(){
+ const list=$("chatList");if(!list)return;list.innerHTML="";
+ [...chats].sort((a,b)=>b.updatedAt-a.updatedAt).forEach(item=>{
+  const button=document.createElement("button");button.className="chat-entry"+(item.id===activeChatId?" active":"");
+  const lang=languages.find(l=>l.id===item.language);button.textContent=(lang?.native||"🌐")+"  "+(item.title||"Nova conversa");button.title=(lang?.name||"Idioma")+" · "+(item.title||"Nova conversa");
+  button.addEventListener("click",()=>switchChat(item.id));list.appendChild(button);
+ });
+}
+function switchChat(id){
+ if(busy||id===activeChatId)return;saveConversation();activeChat=chats.find(c=>c.id===id);if(!activeChat)return;
+ activeChatId=activeChat.id;currentLanguage=activeChat.language||"ja";currentMethod=activeChat.method||"adaptive";conversation=activeChat.messages||[];
+ localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);updateActiveLanguage();renderChat();renderChatList();
+}
+function createChat(language,method){
+ const item={id:"chat-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),language,method,title:"Nova conversa",messages:[],createdAt:Date.now(),updatedAt:Date.now()};
+ chats.unshift(item);activeChat=item;activeChatId=item.id;currentLanguage=language;currentMethod=method;conversation=item.messages;persistChats();
+ localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);$("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();renderChatList();
 }
 function selectedLanguage(){return languages.find(x=>x.id===currentLanguage)||languages[0];}
 function methodDescription(){
@@ -409,7 +477,7 @@ function methodDescription(){
  })[currentMethod]||"Adapte o método ao estudante.";
 }
 function getCurrentSystemPrompt(){
- if(currentLanguage==="ja")return systemPrompt+"\\n\\nPREFERÊNCIA DE APRENDIZADO:\\n"+methodDescription();
+ if(currentLanguage==="ja")return systemPrompt+"\\n\\nPREFERÊNCIA DE APRENDIZADO:\\n"+methodDescription()+"\\n\\nCONTEXTO DESTA CONVERSA: O idioma-alvo atual é japonês. Se houver uma marca de transição no histórico, ignore o conteúdo anterior para fins de ensino e siga apenas o idioma definido após a transição.";
  const lang=selectedLanguage();
  const learnerMemory=localStorage.getItem("linguaMemory_"+currentLanguage)||"Ainda não há memória de aprendizado para este idioma. Faça um diagnóstico leve e não presuma conhecimentos.";
  return `Você é um professor especialista de idiomas no Lingua Lab. Seu idioma de ensino é ${lang.name} (${lang.native}) e o estudante fala português brasileiro.
@@ -426,6 +494,9 @@ REGRAS:
 - Não invente progresso ou palavras que o aluno já domina.
 - Quando houver mais de um sistema de escrita ou variação importante, explique a diferença sem sobrecarregar.
 - Use materiais visuais como [TITLE], [SECTION], [TIP], [LIST], [VOCAB], [DIALOGUE], [TABLE], [QUIZ] e [EXAM] quando ajudarem.
+- Quando o aluno pedir para aprender um assunto, ENSINE primeiro: explique a ideia, mostre como funciona, construa um exemplo passo a passo e só então proponha uma prática curta. Não substitua explicação por quiz, formulário ou exercício.
+- Se o aluno pedir uma aula, não entregue apenas atividades. Verifique se ele entendeu antes de avançar.
+- Em exercícios de escrita, deixe explícito qual sistema de escrita deve ser usado e aceite transliteração quando ela for o foco da atividade.
 - Responda normalmente em 5 a 10 linhas curtas, exceto quando uma aula completa exigir mais.
 MEMÓRIA DE APRENDIZADO:
 ${learnerMemory}`;
@@ -830,19 +901,24 @@ document.querySelectorAll(".method-choice").forEach(btn=>btn.addEventListener("c
 }));
 $("languageBack").addEventListener("click",()=>{$("onboardingMethod").classList.add("hidden");$("onboardingLanguage").classList.remove("hidden");});
 $("finishSetup").addEventListener("click",()=>{
- const nextLanguage=$("languageChoice").value;
- const chosen=document.querySelector(".method-choice.selected");
- if(!nextLanguage||!chosen)return;
- if(nextLanguage!==currentLanguage)saveConversation();
- currentLanguage=nextLanguage;currentMethod=chosen.dataset.method;
- localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);
- conversation=JSON.parse(localStorage.getItem("linguaConversation_"+currentLanguage)||(currentLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]")||"[]");
- localStorage.setItem("linguaSetupComplete","true");
- $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");
- updateActiveLanguage();renderChat();
+ const nextLanguage=$("languageChoice").value;const chosen=document.querySelector(".method-choice.selected");if(!nextLanguage||!chosen)return;
+ saveConversation();createChat(nextLanguage,chosen.dataset.method);localStorage.setItem("linguaSetupComplete","true");
 });
 $("changeLanguage").addEventListener("click",showOnboarding);
 $("send").addEventListener("click",sendMessage);
+$("newChat").addEventListener("click",()=>{document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));$("finishSetup").disabled=true;showOnboarding();});
+$("transitionChat").addEventListener("click",()=>{
+ const select=$("transitionLanguage");select.innerHTML="";
+ languages.filter(l=>l.id!==currentLanguage).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=l.name+" · "+l.native;select.appendChild(o);});
+ $("transitionModal").classList.remove("hidden");
+});
+$("cancelTransition").addEventListener("click",()=>$("transitionModal").classList.add("hidden"));
+$("confirmTransition").addEventListener("click",()=>{
+ const next=$("transitionLanguage").value;if(!next)return;const lang=languages.find(l=>l.id===next);const old=selectedLanguage().name;
+ currentLanguage=next;activeChat.language=next;activeChat.method=currentMethod;
+ conversation.push({role:"assistant",content:"\n──────────\n🌍 Transição de curso\nDe: "+old+"\nPara: "+lang.name+"\nA partir daqui, vamos estudar "+lang.name+". O histórico anterior foi preservado."});
+ saveConversation();$("transitionModal").classList.add("hidden");localStorage.setItem(STORAGE.language,next);updateActiveLanguage();renderChat();renderChatList();
+});
 
 $("prompt").addEventListener("keydown",event => {
   if(event.key === "Enter" && !event.shiftKey) {
@@ -1065,10 +1141,11 @@ $("provider").addEventListener("change",()=>{
 });
 
 loadSettings();
+renderChatList();
 updateProgress();
 renderWords();
 if(localStorage.getItem("linguaSetupComplete")==="true"){
- $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();
+ $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();renderChatList();
 }else{
  fillLanguageOptions();
  $("classroom").classList.add("hidden");
