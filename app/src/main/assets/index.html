@@ -499,8 +499,11 @@ const CHAT_STORE_KEY="lingoraChats";
 let chats=JSON.parse(localStorage.getItem(CHAT_STORE_KEY)||"null");
 if(!Array.isArray(chats)||!chats.length){
  const legacyLanguage=localStorage.getItem(STORAGE.language)||"ja";
- const legacyMessages=JSON.parse(localStorage.getItem("linguaConversation_"+legacyLanguage)||(legacyLanguage==="ja"?localStorage.getItem("nihongoConversation"):"[]")||"[]");
- chats=[{id:"chat-"+Date.now(),language:legacyLanguage,method:localStorage.getItem(STORAGE.method)||"adaptive",title:legacyMessages.find(m=>m.role==="user")?.content?.slice(0,34)||"Primeira conversa",messages:legacyMessages,createdAt:Date.now(),updatedAt:Date.now()}];
+ chats=languages.map(lang=>{
+  const messages=JSON.parse(localStorage.getItem("linguaConversation_"+lang.id)||(lang.id==="ja"?localStorage.getItem("nihongoConversation"):"[]")||"[]");
+  return messages.length?{id:"legacy-"+lang.id+"-"+Date.now(),language:lang.id,method:localStorage.getItem(STORAGE.method)||"adaptive",title:messages.find(m=>m.role==="user")?.content?.slice(0,34)||("Conversa em "+lang.name),messages,createdAt:Date.now(),updatedAt:Date.now()}:null;
+ }).filter(Boolean);
+ if(!chats.length)chats=[{id:"chat-"+Date.now(),language:legacyLanguage,method:localStorage.getItem(STORAGE.method)||"adaptive",title:"Primeira conversa",messages:[],createdAt:Date.now(),updatedAt:Date.now()}];
  localStorage.setItem(CHAT_STORE_KEY,JSON.stringify(chats));
 }
 let activeChatId=localStorage.getItem("lingoraActiveChat")||chats[0].id;
@@ -632,6 +635,7 @@ async function requestProfessorAnswer(){
   const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
   const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   const data=await callChatAPI(provider,key,model,payload);
+  if(data?.error)throw new Error(data.error.message||data.error);
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
   conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();if(supabaseClient?.auth)syncCloud().catch(e=>accountStatus("Falha ao sincronizar: "+e.message));
  }catch(e){loading.textContent="Erro: "+e.message;}
@@ -739,7 +743,7 @@ function parseVisuals(rawText){
  const container=document.createElement("div");
  const blockRe=/\[(TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\s+([^\]]+))?\]([\s\S]*?)\[\/\1\]/gi;
  let last=0,m;
- function addParagraph(value){const clean=value.replace(/\\[\\/?(?:TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\\s+[^\\]]*)?\\]/gi,"").trim();if(!clean)return;const p=document.createElement("p");addRichText(p,clean);container.appendChild(p);}
+ function addParagraph(value){const clean=value.replace(/\[\/?(?:TITLE|SUBTITLE|SECTION|TIP|LIST|VOCAB|PHRASE|DIALOGUE|TABLE|QUIZ|EXAM|FLASHCARDS|CARD|WRITE|ILLUSTRATION)(?:\s+[^\]]*)?\]/gi,"").trim();if(!clean)return;const p=document.createElement("p");addRichText(p,clean);container.appendChild(p);}
  while((m=blockRe.exec(normalizedText))){
   addParagraph(normalizedText.slice(last,m.index));
   const type=m[1].toUpperCase(),arg=(m[2]||"").trim(),content=m[3].trim();
