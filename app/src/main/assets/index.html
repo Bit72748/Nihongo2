@@ -297,14 +297,8 @@ footer {
 <section id="page-ajustes" class="hidden">
   <div class="panel">
     <h2>Configurações</h2>
-    <label>Provedor de IA</label>
-    <select id="provider">
-      <option value="groq">Groq (principal)</option>
-      <option value="mistral">Mistral (alternativa)</option>
-    </select>
-    <label id="apiKeyLabel">Chave API da Groq</label>
-    <input id="apiKey" type="password" placeholder="Cole sua chave API aqui">
-    <label>Modelo</label>
+    <p class="muted">A IA é processada com segurança pelo servidor da Lingora. Você não precisa colar nenhuma chave API no aplicativo.</p>
+    <label>Modelo de IA</label>
     <select id="model"></select>
     <label>Estilo visual dos materiais</label>
     <select id="visualStyle">
@@ -608,15 +602,7 @@ async function requestProfessorAnswer(){
  try{
   const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
   const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
-  let data;
-  try{
-   data=await callChatAPI(provider,key,model,payload);
-  }catch(primaryError){
-   const fallbackKey=provider==="groq"?getProviderKey("mistral"):"";
-   if(!fallbackKey)throw primaryError;
-   data=await callChatAPI("mistral",fallbackKey,"ministral-8b-latest",payload);
-   loading.textContent="Groq indisponível. Resposta gerada pela Mistral.";
-  }
+  const data=await callChatAPI(provider,key,model,payload);
   const answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
   conversation.push({role:"assistant",content:answer});saveConversation();progress.messages++;addXP(2);renderChat();if(supabaseClient?.auth)syncCloud().catch(e=>accountStatus("Falha ao sincronizar: "+e.message));
  }catch(e){loading.textContent="Erro: "+e.message;}
@@ -1062,17 +1048,9 @@ $("addWord").addEventListener("click",() => {
 });
 
 $("saveSettings").addEventListener("click",() => {
-  const provider=$("provider").value;
-  const key=$("apiKey").value.trim();
-  const model=$("model").value;
-  const style=$("visualStyle").value;
-
-  localStorage.setItem(STORAGE.provider,provider);
-  if(key)localStorage.setItem(provider==="groq"?STORAGE.groqKey:STORAGE.key,key);
-  localStorage.setItem(STORAGE.model,model);
-  localStorage.setItem(STORAGE.style,style);
-
-  $("settingsStatus").textContent="Configurações salvas! Provedor: "+(provider==="groq"?"Groq":"Mistral")+".";
+  localStorage.setItem(STORAGE.model,$("model").value);
+  localStorage.setItem(STORAGE.style,$("visualStyle").value);
+  $("settingsStatus").textContent="Preferências salvas. A chave da IA fica protegida no servidor.";
 });
 
 function createBackupData(){
@@ -1180,22 +1158,9 @@ function updateModelOptions(provider,selected){
  $("model").value=chosen;
 }
 function loadSettings() {
- const provider=getActiveProvider();
- $("provider").value=provider;
- $("apiKeyLabel").textContent="Chave API da "+(provider==="groq"?"Groq":"Mistral");
- $("apiKey").placeholder="Cole sua chave API da "+(provider==="groq"?"Groq":"Mistral");
- $("apiKey").value=getProviderKey(provider);
- const defaultModel=provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest";
- updateModelOptions(provider,localStorage.getItem(STORAGE.model)||defaultModel);
+ updateModelOptions("groq",localStorage.getItem(STORAGE.model)||"openai/gpt-oss-20b");
  $("visualStyle").value=localStorage.getItem(STORAGE.style)||"gourmet";
 }
-$("provider").addEventListener("change",()=>{
- const provider=$("provider").value;
- $("apiKeyLabel").textContent="Chave API da "+(provider==="groq"?"Groq":"Mistral");
- $("apiKey").placeholder="Cole sua chave API da "+(provider==="groq"?"Groq":"Mistral");
- $("apiKey").value=getProviderKey(provider);
- updateModelOptions(provider,provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
-});
 
 loadSettings();
 renderChatList();
