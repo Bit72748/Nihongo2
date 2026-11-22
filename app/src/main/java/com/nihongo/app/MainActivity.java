@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
 
     private void deliverAuthCallback() {
         if (webView == null || pendingAuthCallback == null) return;
-        String encoded = Base64.encodeToString(pendingAuthCallback.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP);
+        String encoded = Base64.encodeToString(pendingAuthCallback.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
         webView.evaluateJavascript("(function(){if(window.handleLingoraAuthCallback){window.handleLingoraAuthCallback(atob(\"" + encoded + "\"));}})();", null);
         pendingAuthCallback = null;
     }
