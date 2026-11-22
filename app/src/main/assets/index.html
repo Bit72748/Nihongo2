@@ -991,7 +991,6 @@ $("finishSetup").addEventListener("click",()=>{
  const nextLanguage=$("languageChoice").value;const chosen=document.querySelector(".method-choice.selected");if(!nextLanguage||!chosen)return;
  saveConversation();createChat(nextLanguage,chosen.dataset.method);localStorage.setItem("linguaSetupComplete","true");
 });
-$("changeLanguage").addEventListener("click",showOnboarding);
 $("send").addEventListener("click",sendMessage);
 $("newChat").addEventListener("click",()=>{if(busy)return;document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));$("finishSetup").disabled=true;showOnboarding();});
 $("transitionChat").addEventListener("click",()=>{
@@ -1151,9 +1150,14 @@ function applyBackup(data){
  const settings=data.settings&&typeof data.settings==="object"?data.settings:{};
  // Validate and write before changing in-memory state, so a storage error cannot leave a half-imported backup.
  localStorage.setItem(STORAGE.memory,nextMemory);
+ localStorage.setItem("linguaMemory_"+currentLanguage,nextMemory);
+ progressByLanguage[currentLanguage]=nextProgress;wordsByLanguage[currentLanguage]=nextWords;
+ localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
+ localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));
  localStorage.setItem(STORAGE.progress,JSON.stringify(nextProgress));
  localStorage.setItem(STORAGE.words,JSON.stringify(nextWords));
- localStorage.setItem("nihongoConversation",JSON.stringify(nextConversation));
+ localStorage.setItem("linguaConversation_"+currentLanguage,JSON.stringify(nextConversation));
+ if(currentLanguage==="ja")localStorage.setItem("nihongoConversation",JSON.stringify(nextConversation));
  if(settings.provider==="groq"||settings.provider==="mistral")localStorage.setItem(STORAGE.provider,settings.provider);
  if(["openai/gpt-oss-20b","llama-3.3-70b-versatile","ministral-8b-latest","mistral-small-latest"].includes(settings.model))localStorage.setItem(STORAGE.model,settings.model);
  if(["gourmet","simple"].includes(settings.style))localStorage.setItem(STORAGE.style,settings.style);
