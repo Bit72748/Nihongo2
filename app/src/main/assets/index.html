@@ -371,6 +371,10 @@ async function syncCloud(){
    const {error:delErr}=await supabaseClient.from("messages").delete().eq("conversation_id",cloudId);if(delErr)throw delErr;
    if(chat.messages?.length){const rows=chat.messages.slice(-100).map(m=>({conversation_id:cloudId,role:m.role,content:m.content}));const {error:insErr}=await supabaseClient.from("messages").insert(rows);if(insErr)throw insErr;}
   }
+  const coursePayload={};
+  languages.forEach(l=>{coursePayload[l.id]={memory:localStorage.getItem("linguaMemory_"+l.id)||(l.id==="ja"?localStorage.getItem(STORAGE.memory)||initialMemory:""),words:wordsByLanguage[l.id]||[],progress:progressByLanguage[l.id]||{xp:0,messages:0}};});
+  const {error:courseError}=await supabaseClient.from("learner_data").upsert({user_id:session.user.id,courses:coursePayload,updated_at:new Date().toISOString()});
+  if(courseError)throw courseError;
   persistChats();renderChatList();
  }catch(e){throw e;}finally{cloudSyncBusy=false;}
 }
@@ -493,6 +497,19 @@ activeChatId=activeChat.id;
 let currentLanguage=activeChat.language||"ja";
 let currentMethod=activeChat.method||"adaptive";
 let conversation=activeChat.messages||[];
+let progressByLanguage=JSON.parse(localStorage.getItem("lingoraProgressByLanguage")||"{}");
+let wordsByLanguage=JSON.parse(localStorage.getItem("lingoraWordsByLanguage")||"{}");
+if(!progressByLanguage[currentLanguage])progressByLanguage[currentLanguage]=progress;
+if(!wordsByLanguage[currentLanguage])wordsByLanguage[currentLanguage]=words;
+function loadCourseState(language){
+ memory=localStorage.getItem("linguaMemory_"+language)||(language==="ja"?(localStorage.getItem(STORAGE.memory)||initialMemory):"Sem memória de aprendizado registrada ainda.");
+ progress=progressByLanguage[language]||{xp:0,messages:0};
+ words=wordsByLanguage[language]||(language==="ja"?JSON.parse(localStorage.getItem(STORAGE.words)||"[]"):[]);
+ progressByLanguage[language]=progress;wordsByLanguage[language]=words;
+ localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
+ localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));
+}
+loadCourseState(currentLanguage);
 let busy=false;
 function persistChats(){localStorage.setItem(CHAT_STORE_KEY,JSON.stringify(chats));localStorage.setItem("lingoraActiveChat",activeChatId);}
 function saveConversation(){
@@ -510,13 +527,13 @@ function renderChatList(){
 }
 function switchChat(id){
  if(busy||id===activeChatId)return;saveConversation();activeChat=chats.find(c=>c.id===id);if(!activeChat)return;
- activeChatId=activeChat.id;currentLanguage=activeChat.language||"ja";currentMethod=activeChat.method||"adaptive";conversation=activeChat.messages||[];
- localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);updateActiveLanguage();renderChat();renderChatList();
+ activeChatId=activeChat.id;currentLanguage=activeChat.language||"ja";currentMethod=activeChat.method||"adaptive";conversation=activeChat.messages||[];loadCourseState(currentLanguage);
+ localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);updateActiveLanguage();updateProgress();renderWords();renderChat();renderChatList();
 }
 function createChat(language,method){
  const item={id:"chat-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),language,method,title:"Nova conversa",messages:[],createdAt:Date.now(),updatedAt:Date.now()};
- chats.unshift(item);activeChat=item;activeChatId=item.id;currentLanguage=language;currentMethod=method;conversation=item.messages;persistChats();
- localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);$("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();renderChatList();
+ chats.unshift(item);activeChat=item;activeChatId=item.id;currentLanguage=language;currentMethod=method;conversation=item.messages;loadCourseState(currentLanguage);persistChats();
+ localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);$("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();updateProgress();renderWords();renderChat();renderChatList();if(supabaseClient?.auth)syncCloud().catch(()=>{});
 }
 function selectedLanguage(){return languages.find(x=>x.id===currentLanguage)||languages[0];}
 function methodDescription(){
@@ -610,7 +627,9 @@ async function requestProfessorAnswer(){
 }
 
 function saveProgress() {
-  localStorage.setItem(STORAGE.progress, JSON.stringify(progress));
+  progressByLanguage[currentLanguage]=progress;
+  localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
+  localStorage.setItem(STORAGE.progress,JSON.stringify(progress));
   updateProgress();
 }
 
@@ -958,9 +977,9 @@ $("transitionChat").addEventListener("click",()=>{
 $("cancelTransition").addEventListener("click",()=>$("transitionModal").classList.add("hidden"));
 $("confirmTransition").addEventListener("click",()=>{
  const next=$("transitionLanguage").value;if(!next)return;const lang=languages.find(l=>l.id===next);const old=selectedLanguage().name;
- currentLanguage=next;activeChat.language=next;activeChat.method=currentMethod;
+ currentLanguage=next;activeChat.language=next;activeChat.method=currentMethod;loadCourseState(currentLanguage);
  conversation.push({role:"assistant",content:"\n──────────\n🌍 Transição de curso\nDe: "+old+"\nPara: "+lang.name+"\nA partir daqui, vamos estudar "+lang.name+". O histórico anterior foi preservado."});
- saveConversation();$("transitionModal").classList.add("hidden");localStorage.setItem(STORAGE.language,next);updateActiveLanguage();renderChat();renderChatList();
+ saveConversation();$("transitionModal").classList.add("hidden");localStorage.setItem(STORAGE.language,next);updateActiveLanguage();updateProgress();renderWords();renderChat();renderChatList();if(supabaseClient?.auth)syncCloud().catch(()=>{});
 });
 
 $("prompt").addEventListener("keydown",event => {
@@ -1010,6 +1029,8 @@ function renderWords() {
 }
 
 function saveWords() {
+  wordsByLanguage[currentLanguage]=words;
+  localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));
   localStorage.setItem(STORAGE.words,JSON.stringify(words));
 }
 
@@ -1136,12 +1157,14 @@ $("resetProgress").addEventListener("click",() => {
   if(!confirm("Tem certeza que deseja reiniciar o progresso?")) return;
 
   progress = {xp:0,messages:0};
-  memory = initialMemory;
+  memory = currentLanguage==="ja"?initialMemory:"Sem memória de aprendizado registrada ainda.";
   words = [];
   conversation = [];
+  activeChat.messages=[];
   localStorage.removeItem("nihongoConversation");
 
-  localStorage.setItem(STORAGE.memory,memory);
+  localStorage.setItem("linguaMemory_"+currentLanguage,memory);
+  if(currentLanguage==="ja")localStorage.setItem(STORAGE.memory,memory);
   saveProgress();
   saveWords();
   renderWords();
