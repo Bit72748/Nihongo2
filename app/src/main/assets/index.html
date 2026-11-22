@@ -322,23 +322,64 @@ input,select,textarea{border-radius:13px}
 .progress div{background:linear-gradient(90deg,#a77bea,#e1a7ee)}
 footer{padding:30px 18px;color:#877b99}
 @media(max-width:680px){header{padding:12px 14px}header h1{font-size:20px}header small{font-size:10px}nav{justify-content:flex-start;padding:9px 12px}nav button{min-width:auto;padding:9px 14px}main{padding:17px 12px 36px}#page-professor>.panel:first-child>h2{font-size:26px}.panel{padding:16px;border-radius:18px}.chat-layout{grid-template-columns:minmax(0,1fr)}.chat-sidebar{order:2}.chat-workspace{order:1;padding:9px}.chat-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Lingora AI 1.1 shell and settings */
+:root{--font-scale:1;--drawer-width:min(310px,86vw)}
+body{font-size:calc(14px * var(--font-scale))}
+.app-header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:10px 14px;background:#151020ed;backdrop-filter:blur(18px);border-bottom:1px solid #4a3566}
+.icon-button{width:42px;height:42px;flex:0 0 42px;padding:0;border-radius:13px;font-size:23px;display:grid;place-items:center}
+.header-brand{display:flex;align-items:center;gap:10px;min-width:0}.header-brand h1{margin:0;font-size:20px;line-height:1.1}.header-brand small{display:block;margin:4px 0 0;color:var(--muted);font-size:10px}
+.brand-mark{display:grid;place-items:center;width:42px;height:42px;margin:0;border-radius:14px;background:linear-gradient(145deg,#2b2040,#151020);border:1px solid #9e7ce8;box-shadow:0 0 22px #a78bfa35}.brand-mark svg{width:34px;height:34px;fill:none;stroke:#e8ddff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.brand-mark .flower{fill:#ff9bcf;stroke:#ffb5d7}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.drawer-backdrop{position:fixed;inset:0;z-index:39;background:#05030bd9;backdrop-filter:blur(3px)}
+.app-drawer{position:fixed;z-index:40;inset:0 auto 0 0;width:var(--drawer-width);display:flex;flex-direction:column;padding:16px 12px 12px;background:linear-gradient(180deg,#1b1429,#100d19);border-right:1px solid #4a365e;box-shadow:20px 0 60px #0008;transform:translateX(-105%);transition:transform .22s ease}
+.app-drawer.open{transform:translateX(0)}.drawer-top{display:flex;align-items:center;justify-content:space-between;padding:0 3px 14px}.drawer-heading{font-weight:800;font-size:17px}
+.drawer-action{width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin:2px 0 19px;padding:13px 14px;border-radius:13px}
+.drawer-section-label{padding:0 10px 8px;color:#9185a6;font-size:10px;font-weight:800;letter-spacing:.12em}
+.drawer-link{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:11px 12px;margin:2px 0;border:1px solid transparent;background:transparent;color:#d9cde9;border-radius:11px}
+.drawer-link>span{width:20px;text-align:center;color:#c3a5ff;font-size:17px}.drawer-link.active{background:#38264f;border-color:#61477f;color:#fff}
+.chats-label{margin-top:19px}.drawer-chat-list{display:flex;flex-direction:column;gap:4px;overflow:auto;min-height:0;padding:0 2px 12px}
+.drawer-chat-list .chat-entry{width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:10px 11px;font-size:12px;background:#191326;border-color:transparent;border-radius:10px}
+.drawer-chat-list .chat-entry.active{background:#493578;border-color:#a78bfa}.drawer-empty{padding:8px 10px;color:#8f849e;font-size:12px}
+.drawer-bottom{margin-top:auto;padding-top:10px;border-top:1px solid #342541}.drawer-account{padding:10px 12px 3px;color:#81768e;font-size:10px}
+body.drawer-open{overflow:hidden}nav,.chat-sidebar{display:none!important}.chat-layout{display:block!important}.chat-workspace{max-width:850px;margin:14px auto 0}
+.settings-heading{margin:5px 0 20px}.settings-heading h2{font-size:30px;letter-spacing:-.05em;margin:5px 0}.eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;color:#b99aff}
+.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.settings-card{margin:0 0 14px!important;padding:19px}
+.settings-title{display:flex;align-items:center;gap:12px;margin-bottom:17px}.settings-title h3{margin:0 0 3px;font-size:16px}.settings-title p{margin:0;font-size:11px}
+.settings-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#332449;color:#d8c3ff;font-size:20px}
+.settings-card label:not(.setting-check){display:block;margin:12px 0 4px;color:#c9bdd8;font-size:12px;font-weight:650}.settings-card select{margin:3px 0 8px}
+.setting-check{display:flex;align-items:center;gap:9px;margin:12px 0;color:#d9cde9;font-size:13px}.setting-check input{width:17px;height:17px;margin:0;accent-color:#9b75e5}
+.small-note{font-size:11px;line-height:1.5}.settings-savebar{position:sticky;bottom:8px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin:12px 0 20px;border:1px solid #554071;border-radius:16px;background:#171225ed;backdrop-filter:blur(14px);box-shadow:0 10px 35px #0006}.settings-savebar p{margin:0;font-size:11px}
+body.high-contrast{--muted:#d0c6df;--border:#76618f}body.comfortable-spacing .panel{margin-bottom:22px!important}
+body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+body.theme-light{--bg:#f4f0fa;--panel:#fff;--panel2:#eee7f7;--text:#241a32;--muted:#675b76;--border:#d8cce8;background:#f4f0fa;color:#241a32}
+body.theme-light .app-header,body.theme-light .app-drawer,body.theme-light .settings-savebar{background:#fff;color:#241a32;border-color:#ded3eb}
+body.theme-light .panel,body.theme-light .chat-workspace{background:#fff;color:#241a32;border-color:#ded3eb}
+body.theme-light input,body.theme-light textarea,body.theme-light select{background:#faf8fd;color:#241a32;border-color:#d8cce8}
+body.theme-light .drawer-link{color:#392d48}body.theme-light .drawer-link.active{background:#eee5fa}
+body.theme-light .message.assistant{background:#f5f0fb;color:#241a32;border-color:#e1d6ed}
+body.theme-light .settings-card label,body.theme-light .setting-check{color:#392d48}
+body.accent-blue{--accent:#8ecbff;--accent2:#397fc0}body.accent-pink{--accent:#ff9bcf;--accent2:#b64f8c}body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
+@media(max-width:680px){.app-header{padding:9px 11px;gap:9px}.header-brand h1{font-size:17px}.header-brand small{font-size:9px}.brand-mark{width:37px;height:37px}.brand-mark svg{width:30px;height:30px}.header-actions{gap:5px}.header-actions #xp{padding:7px 9px;font-size:10px}.header-actions #accountButton{padding:8px 10px;font-size:11px}.settings-grid{grid-template-columns:1fr}.settings-heading h2{font-size:26px}.settings-card{padding:16px}.settings-savebar{bottom:5px}.chat-workspace{padding:10px;margin-top:8px}}
+
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1><span class="brand-mark">L</span>Lingora AI</h1>
-    <small>Seu universo de idiomas começa aqui.</small>
-  </div>
-  <div class="row" style="align-items:center;flex:0 0 auto"><div id="xp">0 XP</div><button id="accountButton">Entrar</button></div>
-</header>
-
-<nav>
-  <button class="active" data-page="professor">Professor</button>
-  <button data-page="inicio">Início</button>
-  <button data-page="palavras">Palavras</button>
-  <button data-page="ajustes">Ajustes</button>
-</nav>
+<header class="app-header">
+<button id="menuToggle" class="icon-button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+<div class="header-brand"><span class="brand-mark"><svg viewBox="0 0 48 48"><circle cx="24" cy="21" r="15"/><path d="M9 21h30M24 6c-7 7-7 23 0 30M24 6c7 7 7 23 0 30M12 29c5-3 9-3 12 1 3-4 7-4 12-1v10c-5-3-9-3-12 1-3-4-7-4-12-1z"/><path class="flower" d="M38 5c-3-4-7-1-5 2-4-1-5 4-1 5 0 4 5 4 6 1 3 3 7 0 5-3 3-3 0-7-3-5z"/></svg></span><div><h1>Lingora AI</h1><small>Seu universo de idiomas começa aqui.</small></div></div>
+<div class="header-actions"><div id="xp">0 XP</div><button id="accountButton">Entrar</button></div></header>
+<div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+<aside id="appDrawer" class="app-drawer" aria-label="Menu principal" aria-hidden="true">
+<div class="drawer-top"><div class="drawer-heading">Seu espaço</div><button id="drawerClose" class="icon-button" aria-label="Fechar menu">×</button></div>
+<button class="drawer-action primary" id="drawerNewChat">＋ <span>Novo chat</span></button>
+<div class="drawer-section-label">ESPAÇO DE APRENDIZADO</div>
+<button class="drawer-link active" data-page="professor"><span>✦</span> Professor</button>
+<button class="drawer-link" data-page="inicio"><span>◷</span> Progresso</button>
+<button class="drawer-link" data-page="palavras"><span>▤</span> Vocabulário</button>
+<div class="drawer-section-label chats-label">CHATS RECENTES</div><div id="drawerChatList" class="drawer-chat-list"></div>
+<div class="drawer-bottom"><button class="drawer-link" data-page="ajustes"><span>⚙</span> Configurações</button><div class="drawer-account">Lingora AI · 1.1</div></div>
+</aside>
 
 <main>
 <section id="page-professor">
@@ -430,29 +471,27 @@ footer{padding:30px 18px;color:#877b99}
 </section>
 
 <section id="page-ajustes" class="hidden">
-  <div class="panel">
-    <h2>Configurações</h2>
-    <p class="muted">A IA é processada com segurança pelo servidor da Lingora. Você não precisa colar nenhuma chave API no aplicativo.</p>
-    <label>Modelo de IA</label>
-    <select id="model"></select>
-    <label>Estilo visual dos materiais</label>
-    <select id="visualStyle">
-      <option value="gourmet">Gourmet</option>
-      <option value="simple">Simples</option>
-    </select>
-    <button class="primary" id="saveSettings">Salvar configurações</button>
-    <p class="muted" id="settingsStatus"></p>
-  </div>
-  <div class="panel">
-    <h3>Dados do aprendizado</h3>
-    <div class="row">
-      <button id="exportData">Exportar memória</button>
-      <button id="importData">Importar memória</button>
-      <input id="importFile" type="file" accept="application/json,.json" class="hidden">
-      <button id="resetProgress">Reiniciar progresso</button>
-    </div>
-    <p class="muted">A memória, o vocabulário e o progresso ficam salvos no dispositivo e sincronizam com sua conta quando você entra.</p>
-  </div>
+<div class="settings-heading"><span class="eyebrow">PERSONALIZE SEU ESPAÇO</span><h2>Configurações</h2><p class="muted">Deixe o Lingora com a sua cara e ajuste o jeito de aprender.</p></div>
+<div class="settings-grid">
+<div class="panel settings-card"><div class="settings-title"><span class="settings-icon">◐</span><div><h3>Aparência</h3><p class="muted">Visual e conforto de leitura</p></div></div>
+<label for="themeChoice">Tema</label><select id="themeChoice"><option value="dark">Escuro</option><option value="light">Claro</option><option value="system">Automático</option></select>
+<label for="fontScale">Tamanho da fonte</label><select id="fontScale"><option value="small">Pequeno</option><option value="normal">Normal</option><option value="large">Grande</option><option value="xlarge">Extra grande</option></select>
+<label for="accentChoice">Cor de destaque</label><select id="accentChoice"><option value="violet">Violeta</option><option value="blue">Azul</option><option value="pink">Rosa</option><option value="mint">Menta</option></select>
+<label for="visualStyle">Estilo dos materiais</label><select id="visualStyle"><option value="gourmet">Imersivo</option><option value="simple">Minimalista</option></select>
+<label class="setting-check"><input type="checkbox" id="reduceMotion"> Reduzir animações</label></div>
+<div class="panel settings-card"><div class="settings-title"><span class="settings-icon">✧</span><div><h3>Personalidade do professor</h3><p class="muted">Como ele conversa com você</p></div></div>
+<label for="teacherPersonality">Estilo de comunicação</label><select id="teacherPersonality"><option value="friendly">Amigável e acolhedor</option><option value="casual">Descontraído</option><option value="patient">Paciente e detalhista</option><option value="formal">Formal e profissional</option><option value="direct">Direto ao ponto</option></select>
+<label for="teacherDetail">Nível de explicação</label><select id="teacherDetail"><option value="balanced">Equilibrado</option><option value="concise">Mais resumido</option><option value="detailed">Mais detalhado</option></select>
+<label for="teacherEmoji">Emojis</label><select id="teacherEmoji"><option value="some">Moderadamente</option><option value="none">Não usar</option><option value="many">Pode usar bastante</option></select></div>
+<div class="panel settings-card"><div class="settings-title"><span class="settings-icon">⌘</span><div><h3>Aprendizado</h3><p class="muted">Dinâmica das aulas</p></div></div>
+<label for="lessonPace">Ritmo</label><select id="lessonPace"><option value="steady">Progressivo</option><option value="slow">Com mais calma</option><option value="fast">Acelerado</option></select>
+<label for="exampleCount">Quantidade de exemplos</label><select id="exampleCount"><option value="few">Poucos e objetivos</option><option value="normal">Equilibrada</option><option value="many">Vários exemplos</option></select>
+<label for="exerciseFrequency">Frequência de exercícios</label><select id="exerciseFrequency"><option value="low">Só quando fizer sentido</option><option value="medium">De vez em quando</option><option value="high">Com frequência</option></select>
+<label for="learningFocus">Foco principal</label><select id="learningFocus"><option value="conversation">Conversação e compreensão</option><option value="balanced">Equilíbrio entre habilidades</option><option value="reading">Leitura e escrita</option></select></div>
+<div class="panel settings-card"><div class="settings-title"><span class="settings-icon">◈</span><div><h3>Inteligência artificial</h3><p class="muted">Modelo utilizado pelo professor</p></div></div><label for="model">Modelo de IA</label><select id="model"></select><p class="muted small-note">A conexão é feita com segurança pelo servidor. Sua chave de API não fica no aplicativo.</p></div></div>
+<div class="panel settings-card"><div class="settings-title"><span class="settings-icon">♧</span><div><h3>Acessibilidade</h3><p class="muted">Ajustes para facilitar o uso</p></div></div><label class="setting-check"><input type="checkbox" id="highContrast"> Aumentar contraste</label><label class="setting-check"><input type="checkbox" id="comfortableSpacing"> Mais espaço entre elementos</label></div>
+<div class="panel settings-card"><h3>Dados e privacidade</h3><p class="muted">Gerencie seus dados de aprendizado.</p><div class="row settings-buttons"><button id="exportData">Exportar dados</button><button id="importData">Importar dados</button><button id="resetProgress">Reiniciar progresso</button><input id="importFile" type="file" accept="application/json,.json" class="hidden"></div></div>
+<div class="settings-savebar"><p id="settingsStatus" class="muted" aria-live="polite">Suas alterações só são aplicadas ao salvar.</p><button class="primary" id="saveSettings">Salvar preferências</button></div>
 </section>
 </main>
 <div id="accountModal" class="transition-modal hidden" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="transition-card"><h3 id="accountTitle">Sua conta Lingora</h3><p id="accountDescription" class="muted">Entre com Google para sincronizar seus cursos e conversas entre dispositivos.</p><button id="googleLogin" class="primary" style="width:100%">Continuar com Google</button><button id="syncNow" style="width:100%;margin-top:8px">Sincronizar agora</button><button id="signOut" style="width:100%;margin-top:8px">Sair da conta</button><button id="closeAccount" style="width:100%;margin-top:8px">Fechar</button><p id="accountStatus" class="muted" aria-live="polite"></p></div></div>
@@ -778,7 +817,7 @@ async function requestProfessorAnswer(){
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
   const model=$("model").value||"openai/gpt-oss-20b";
-  const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
+  const payload={messages:[{role:"system",content:getCurrentSystemPrompt()+"\\n\\n"+getTeacherPreferencePrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   const data=await callChatAPI(provider,key,model,payload);
   if(data?.error)throw new Error(data.error.message||data.error);
   let answer=data.choices?.[0]?.message?.content;if(!answer)throw new Error("A API não retornou uma resposta.");
@@ -830,6 +869,7 @@ function navigate(page) {
 
   if(page === "inicio") updateProgress();
   if(page === "palavras") renderWords();
+  if(page === "ajustes") loadSettings();
 }
 
 document.querySelectorAll("nav button").forEach(button => {
@@ -1236,10 +1276,70 @@ $("addWord").addEventListener("click",() => {
   addXP(3);
 });
 
+
+function setDrawer(open){
+ const drawer=$("appDrawer"),backdrop=$("drawerBackdrop");
+ drawer.classList.toggle("open",open);backdrop.classList.toggle("hidden",!open);
+ drawer.setAttribute("aria-hidden",String(!open));$("menuToggle").setAttribute("aria-expanded",String(open));
+ document.body.classList.toggle("drawer-open",open);
+}
+$("menuToggle").addEventListener("click",()=>setDrawer(!$("appDrawer").classList.contains("open")));
+$("drawerClose").addEventListener("click",()=>setDrawer(false));
+$("drawerBackdrop").addEventListener("click",()=>setDrawer(false));
+$("drawerNewChat").addEventListener("click",()=>{setDrawer(false);$("newChat").click();});
+document.querySelectorAll(".drawer-link[data-page]").forEach(button=>button.addEventListener("click",()=>{
+ const page=button.dataset.page;document.querySelectorAll(".drawer-link[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ navigate(page);setDrawer(false);
+}));
+function renderDrawerChats(){
+ const target=$("drawerChatList");if(!target)return;target.innerHTML="";
+ const entries=$("chatList")?.querySelectorAll(".chat-entry")||[];
+ if(!entries.length){const empty=document.createElement("div");empty.className="drawer-empty";empty.textContent="Suas conversas aparecerão aqui.";target.appendChild(empty);return;}
+ entries.forEach(entry=>{const copy=entry.cloneNode(true);copy.addEventListener("click",()=>{entry.click();setDrawer(false);});target.appendChild(copy);});
+}
+const drawerChatObserver=new MutationObserver(renderDrawerChats);
+if($("chatList"))drawerChatObserver.observe($("chatList"),{childList:true,subtree:true,attributes:true});
+renderDrawerChats();
+function loadPersonalSettings(){
+ const read=(id,fallback)=>localStorage.getItem("lingoraSetting_"+id)||fallback;
+ $("themeChoice").value=read("theme","dark");$("fontScale").value=read("font","normal");$("accentChoice").value=read("accent","violet");
+ $("teacherPersonality").value=read("personality","friendly");$("teacherDetail").value=read("detail","balanced");$("teacherEmoji").value=read("emoji","some");
+ $("lessonPace").value=read("pace","steady");$("exampleCount").value=read("examples","normal");$("exerciseFrequency").value=read("exercises","low");$("learningFocus").value=read("focus","conversation");
+ $("reduceMotion").checked=read("motion","false")==="true";$("highContrast").checked=read("contrast","false")==="true";$("comfortableSpacing").checked=read("spacing","false")==="true";
+ applyPersonalSettings();
+}
+function applyPersonalSettings(){
+ const get=id=>localStorage.getItem("lingoraSetting_"+id);
+ const font={small:.9,normal:1,large:1.12,xlarge:1.25}[get("font")||"normal"]||1;
+ document.documentElement.style.setProperty("--font-scale",font);
+ document.body.classList.toggle("theme-light",get("theme")==="light");
+ document.body.classList.toggle("reduce-motion",get("motion")==="true");
+ document.body.classList.toggle("high-contrast",get("contrast")==="true");
+ document.body.classList.toggle("comfortable-spacing",get("spacing")==="true");
+ document.body.classList.remove("accent-blue","accent-pink","accent-mint");
+ if(["blue","pink","mint"].includes(get("accent")))document.body.classList.add("accent-"+get("accent"));
+}
+function savePersonalSettings(){
+ const v={theme:$("themeChoice").value,font:$("fontScale").value,accent:$("accentChoice").value,personality:$("teacherPersonality").value,detail:$("teacherDetail").value,emoji:$("teacherEmoji").value,pace:$("lessonPace").value,examples:$("exampleCount").value,exercises:$("exerciseFrequency").value,focus:$("learningFocus").value,motion:$("reduceMotion").checked,contrast:$("highContrast").checked,spacing:$("comfortableSpacing").checked};
+ Object.entries(v).forEach(([k,x])=>localStorage.setItem("lingoraSetting_"+k,String(x)));applyPersonalSettings();
+}
+function getTeacherPreferencePrompt(){
+ const map=(id,v,d)=>v[localStorage.getItem("lingoraSetting_"+id)||d];
+ return "PREFERÊNCIAS DO ESTUDANTE:\n"+
+ "Personalidade: "+map("personality",{friendly:"amigável e acolhedora",casual:"descontraída",patient:"paciente e detalhista",formal:"formal e profissional",direct:"direta ao ponto"},"friendly")+".\n"+
+ "Detalhamento: "+map("detail",{balanced:"equilibrado",concise:"resumido",detailed:"detalhado"},"balanced")+".\n"+
+ "Emojis: "+map("emoji",{some:"uso moderado",none:"não usar",many:"uso frequente"},"some")+".\n"+
+ "Ritmo: "+map("pace",{steady:"progressivo",slow:"com calma",fast:"acelerado"},"steady")+".\n"+
+ "Exemplos: "+map("examples",{few:"poucos",normal:"quantidade equilibrada",many:"vários"},"normal")+".\n"+
+ "Exercícios: "+map("exercises",{low:"quando fizer sentido",medium:"de vez em quando",high:"com frequência"},"low")+".\n"+
+ "Foco: "+map("focus",{conversation:"conversação e compreensão",balanced:"equilíbrio",reading:"leitura e escrita"},"conversation")+". Adapte realmente suas respostas a essas preferências.";
+}
+
 $("saveSettings").addEventListener("click",() => {
   localStorage.setItem(STORAGE.model,$("model").value);
   localStorage.setItem(STORAGE.style,$("visualStyle").value);
-  $("settingsStatus").textContent="Preferências salvas. A chave da IA fica protegida no servidor.";
+  savePersonalSettings();
+  $("settingsStatus").textContent="Preferências salvas e aplicadas!";
 });
 
 function createBackupData(){
@@ -1359,6 +1459,7 @@ function loadSettings() {
 }
 
 loadSettings();
+loadPersonalSettings();
 renderChatList();
 updateProgress();
 renderWords();
