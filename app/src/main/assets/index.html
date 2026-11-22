@@ -364,9 +364,16 @@ async function syncCloud(){
   if(learnerRemote?.courses&&typeof learnerRemote.courses==="object"){
    for(const [code,course] of Object.entries(learnerRemote.courses)){
     if(!course||typeof course!=="object")continue;
-    if(!localStorage.getItem("linguaMemory_"+code)&&typeof course.memory==="string")localStorage.setItem("linguaMemory_"+code,course.memory);
-    if(!wordsByLanguage[code]&&Array.isArray(course.words))wordsByLanguage[code]=course.words;
-    if(!progressByLanguage[code]&&course.progress&&typeof course.progress==="object")progressByLanguage[code]=course.progress;
+    const localMemory=localStorage.getItem("linguaMemory_"+code);
+    if(typeof course.memory==="string"&&(!localMemory||(code==="ja"&&localMemory===initialMemory)))localStorage.setItem("linguaMemory_"+code,course.memory);
+    if(Array.isArray(course.words)){
+     const merged=[...(course.words||[]),...(wordsByLanguage[code]||[])];const seen=new Set();
+     wordsByLanguage[code]=merged.filter(w=>w&&typeof w.jp==="string"&&!seen.has(w.jp)&&seen.add(w.jp));
+    }
+    if(course.progress&&typeof course.progress==="object"){
+     const localProgress=progressByLanguage[code]||{xp:0,messages:0};
+     progressByLanguage[code]=Number(course.progress.xp||0)>Number(localProgress.xp||0)?course.progress:localProgress;
+    }
    }
    localStorage.setItem("lingoraWordsByLanguage",JSON.stringify(wordsByLanguage));localStorage.setItem("lingoraProgressByLanguage",JSON.stringify(progressByLanguage));
    loadCourseState(currentLanguage);
@@ -632,7 +639,7 @@ async function requestProfessorAnswer(){
  const provider="groq";const key="server-managed";
  busy=true;$("send").disabled=true;const loading=addMessage("assistant","Pensando...");
  try{
-  const model=localStorage.getItem(STORAGE.model)||(provider==="groq"?"openai/gpt-oss-20b":"ministral-8b-latest");
+  const model=$("model").value||"openai/gpt-oss-20b";
   const payload={messages:[{role:"system",content:getCurrentSystemPrompt()},...conversation.slice(-16)],temperature:0.65,max_tokens:1400};
   const data=await callChatAPI(provider,key,model,payload);
   if(data?.error)throw new Error(data.error.message||data.error);
@@ -986,9 +993,9 @@ $("finishSetup").addEventListener("click",()=>{
 });
 $("changeLanguage").addEventListener("click",showOnboarding);
 $("send").addEventListener("click",sendMessage);
-$("newChat").addEventListener("click",()=>{document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));$("finishSetup").disabled=true;showOnboarding();});
+$("newChat").addEventListener("click",()=>{if(busy)return;document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));$("finishSetup").disabled=true;showOnboarding();});
 $("transitionChat").addEventListener("click",()=>{
- const select=$("transitionLanguage");select.innerHTML="";
+ if(busy)return;const select=$("transitionLanguage");select.innerHTML="";
  languages.filter(l=>l.id!==currentLanguage).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=l.name+" · "+l.native;select.appendChild(o);});
  $("transitionModal").classList.remove("hidden");
 });
