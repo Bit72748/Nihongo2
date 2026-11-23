@@ -1538,6 +1538,13 @@ function renderCourseManager(filter=""){
   const native=document.createElement("span");native.className="language-native";native.textContent=l.native;
   label.append(input,name,native);target.appendChild(label);
  });
+ const defaultSelect=$("defaultLanguageChoice");
+ if(defaultSelect){
+  const previous=defaultSelect.value||localStorage.getItem("lingoraSetting_defaultLanguage")||currentLanguage;
+  defaultSelect.innerHTML="";
+  [...enrolled].forEach(id=>{const l=languages.find(x=>x.id===id);if(!l)return;const o=document.createElement("option");o.value=id;o.textContent=l.name+" · "+l.native;defaultSelect.appendChild(o);});
+  defaultSelect.value=enrolled.has(previous)?previous:([...enrolled][0]||"ja");
+ }
  $("courseLanguageStatus").textContent=enrolled.size+" idioma(s) ativo(s). Cada chat mantém seu próprio idioma.";
 }
 $("courseLanguageSearch").addEventListener("input",e=>renderCourseManager(e.target.value));
