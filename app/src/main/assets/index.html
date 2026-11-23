@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#100d1d">
 <title>Lingora AI 1.2</title>
 <style>
@@ -492,6 +492,38 @@ body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
  #chat{margin:13px auto}.chat-workspace{margin-top:12px}
 }
 
+
+/* Lingora 1.3 · functional accent palettes and fixed composer */
+:root{--accent:#a78bfa;--accent2:#7655d8;--accent-soft:#a78bfa22;--composer-bg:#0b1019}
+body.accent-violet{--accent:#a78bfa;--accent2:#7655d8;--accent-soft:#a78bfa22}
+body.accent-blue{--accent:#70a7ff;--accent2:#3974dc;--accent-soft:#70a7ff22}
+body.accent-cyan{--accent:#55d8e8;--accent2:#1998b0;--accent-soft:#55d8e822}
+body.accent-mint{--accent:#68dfb4;--accent2:#268f70;--accent-soft:#68dfb422}
+body.accent-lime{--accent:#b7df65;--accent2:#719c2d;--accent-soft:#b7df6522}
+body.accent-pink{--accent:#ff9bcf;--accent2:#c75a91;--accent-soft:#ff9bcf22}
+body.accent-rose{--accent:#ff729c;--accent2:#c63d69;--accent-soft:#ff729c22}
+body.accent-coral{--accent:#ff987e;--accent2:#c75d48;--accent-soft:#ff987e22}
+body.accent-amber{--accent:#f2bd63;--accent2:#b77a27;--accent-soft:#f2bd6322}
+button.primary,#send,.drawer-action.primary{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--text)!important}
+.icon-button:focus-visible,.drawer-link.active,.chat-entry.active,.language-option:has(input:checked),.method-choice.selected{border-color:var(--accent)!important}
+.settings-icon,.drawer-link>span{color:var(--accent)!important}
+#prompt{border-color:var(--accent)!important}
+.chat-workspace{display:flex;flex-direction:column;min-height:0}
+#chat{min-height:0;max-height:calc(100dvh - 245px);overflow-y:auto;overscroll-behavior:contain;padding-bottom:22px;scroll-behavior:smooth}
+.composer-dock{position:fixed;z-index:25;left:0;right:0;bottom:0;padding:12px max(12px,calc((100vw - 850px)/2)) calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent 0%,#090b12ef 24%,#090b12 100%);backdrop-filter:blur(14px)}
+.composer-dock #prompt{width:100%;max-width:850px;min-height:54px;max-height:145px;display:block;margin:0 auto 7px;resize:vertical;border-radius:17px;background:var(--composer-bg);padding:13px 15px}
+.composer-actions{display:flex;justify-content:flex-end;gap:8px;max-width:850px;margin:0 auto}
+#page-professor{padding-bottom:145px}
+body.theme-light{--composer-bg:#fff}
+body.theme-light .composer-dock{background:linear-gradient(180deg,#f4f6fa00 0%,#f4f6faef 24%,#f4f6fa 100%)}
+body.theme-light #prompt{background:#fff;color:#1c2636;border-color:var(--accent)}
+@media(max-width:680px){
+ #chat{max-height:calc(100dvh - 215px);padding-bottom:14px}
+ .composer-dock{padding:9px 10px calc(8px + env(safe-area-inset-bottom))}
+ .composer-dock #prompt{min-height:48px;max-height:120px;border-radius:16px}
+ .composer-actions button{padding:8px 12px}
+ #page-professor{padding-bottom:130px}
+}
 </style>
 </head>
 <body>
@@ -556,10 +588,12 @@ body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
         </aside>
         <div class="chat-workspace">
           <div id="chat"></div>
-          <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
-          <div class="row">
-            <button class="primary" id="send">Enviar</button>
-            <button id="clearChat">Limpar conversa</button>
+          <div class="composer-dock">
+            <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
+            <div class="composer-actions">
+              <button class="primary" id="send">Enviar</button>
+              <button id="clearChat">Limpar conversa</button>
+            </div>
           </div>
         </div>
       </div>
@@ -606,12 +640,12 @@ body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
 
 <section id="page-ajustes" class="hidden">
 <div class="settings-heading"><span class="eyebrow">PREFERÊNCIAS DO APP</span><h2>Configurações</h2><p class="muted">Um espaço de aprendizado que acompanha seu jeito.</p></div>
-<div class="panel settings-card course-manager"><div class="settings-title"><span class="settings-icon">◎</span><div><h3>Meus idiomas</h3><p class="muted">Ative várias línguas e escolha uma para cada conversa.</p></div></div><input id="courseLanguageSearch" type="search" placeholder="Buscar idioma..."><div id="courseLanguageOptions" class="course-language-options"></div><p class="muted small-note" id="courseLanguageStatus">Marque todas as línguas que deseja estudar.</p></div>
+<div class="panel settings-card course-manager"><div class="settings-title"><span class="settings-icon">◎</span><div><h3>Meus idiomas</h3><p class="muted">Ative várias línguas e defina o idioma padrão dos novos chats.</p></div></div><label for="defaultLanguageChoice">Idioma padrão para novos chats</label><select id="defaultLanguageChoice"></select><input id="courseLanguageSearch" type="search" placeholder="Buscar idioma..."><div id="courseLanguageOptions" class="course-language-options"></div><p class="muted small-note" id="courseLanguageStatus">Marque todas as línguas que deseja estudar.</p></div>
 <div class="settings-grid">
 <div class="panel settings-card"><div class="settings-title"><span class="settings-icon">◐</span><div><h3>Aparência</h3><p class="muted">Visual e conforto de leitura</p></div></div>
 <label for="themeChoice">Tema</label><select id="themeChoice"><option value="dark">Escuro</option><option value="light">Claro</option><option value="system">Automático</option></select>
 <label for="fontScale">Tamanho da fonte</label><select id="fontScale"><option value="small">Pequeno</option><option value="normal">Normal</option><option value="large">Grande</option><option value="xlarge">Extra grande</option></select>
-<label for="accentChoice">Cor de destaque</label><select id="accentChoice"><option value="violet">Violeta</option><option value="blue">Azul</option><option value="pink">Rosa</option><option value="mint">Menta</option></select>
+<label for="accentChoice">Cor de destaque</label><select id="accentChoice"><option value="violet">Violeta</option><option value="blue">Azul elétrico</option><option value="cyan">Ciano</option><option value="mint">Menta</option><option value="lime">Lima</option><option value="pink">Rosa</option><option value="rose">Rosa intenso</option><option value="coral">Coral</option><option value="amber">Âmbar</option></select>
 <label for="visualStyle">Estilo dos materiais</label><select id="visualStyle"><option value="gourmet">Imersivo</option><option value="simple">Minimalista</option></select>
 <label class="setting-check"><input type="checkbox" id="reduceMotion"> Reduzir animações</label></div>
 <div class="panel settings-card"><div class="settings-title"><span class="settings-icon">✧</span><div><h3>Personalidade do professor</h3><p class="muted">Como ele conversa com você</p></div></div>
@@ -619,6 +653,7 @@ body.accent-mint{--accent:#80e5c0;--accent2:#288a70}
 <label for="teacherDetail">Nível de explicação</label><select id="teacherDetail"><option value="balanced">Equilibrado</option><option value="concise">Mais resumido</option><option value="detailed">Mais detalhado</option></select>
 <label for="teacherEmoji">Emojis</label><select id="teacherEmoji"><option value="some">Moderadamente</option><option value="none">Não usar</option><option value="many">Pode usar bastante</option></select></div>
 <div class="panel settings-card"><div class="settings-title"><span class="settings-icon">⌘</span><div><h3>Aprendizado</h3><p class="muted">Dinâmica das aulas</p></div></div>
+<label for="defaultMethodChoice">Método padrão de ensino</label><select id="defaultMethodChoice"><option value="speaking">Fala e compreensão primeiro</option><option value="reading">Leitura e escrita primeiro</option><option value="adaptive">Adaptativo</option><option value="both">Equilibrado</option></select>
 <label for="lessonPace">Ritmo</label><select id="lessonPace"><option value="steady">Progressivo</option><option value="slow">Com mais calma</option><option value="fast">Acelerado</option></select>
 <label for="exampleCount">Quantidade de exemplos</label><select id="exampleCount"><option value="few">Poucos e objetivos</option><option value="normal">Equilibrada</option><option value="many">Vários exemplos</option></select>
 <label for="exerciseFrequency">Frequência de exercícios</label><select id="exerciseFrequency"><option value="low">Só quando fizer sentido</option><option value="medium">De vez em quando</option><option value="high">Com frequência</option></select>
@@ -872,6 +907,7 @@ function switchChat(id){
 }
 function createChat(language,method){
  const enrolled=new Set(getEnrolledLanguages());enrolled.add(language);localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify([...enrolled]));
+ localStorage.setItem("lingoraSetting_defaultLanguage",language);
  const item={id:"chat-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),language,method,title:"Nova conversa",messages:[],createdAt:Date.now(),updatedAt:Date.now()};
  chats.unshift(item);activeChat=item;activeChatId=item.id;currentLanguage=language;currentMethod=method;conversation=item.messages;loadCourseState(currentLanguage);persistChats();
  localStorage.setItem(STORAGE.language,currentLanguage);localStorage.setItem(STORAGE.method,currentMethod);$("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();updateProgress();renderWords();renderChat();renderChatList();if(supabaseClient?.auth)syncCloud().catch(()=>{});
@@ -1350,7 +1386,15 @@ $("finishSetup").addEventListener("click",()=>{
  saveConversation();localStorage.setItem("lingoraEnrolledLanguages",JSON.stringify([...selectedSetupLanguages]));createChat(nextLanguage,chosen.dataset.method);localStorage.setItem("linguaSetupComplete","true");
 });
 $("send").addEventListener("click",sendMessage);
-$("newChat").addEventListener("click",()=>{if(busy)return;document.querySelectorAll(".method-choice").forEach(x=>x.classList.remove("selected","active"));$("finishSetup").disabled=true;showOnboarding();});
+function startNewChat(){
+ if(busy)return;
+ const enrolled=getEnrolledLanguages();
+ const preferred=localStorage.getItem("lingoraSetting_defaultLanguage")||currentLanguage||enrolled[0]||"ja";
+ const language=enrolled.includes(preferred)?preferred:(enrolled[0]||"ja");
+ const method=localStorage.getItem("lingoraSetting_defaultMethod")||localStorage.getItem("linguaLearningMethod")||"adaptive";
+ createChat(language,method);
+}
+$("newChat").addEventListener("click",startNewChat);
 $("transitionChat").addEventListener("click",()=>{
  if(busy)return;const select=$("transitionLanguage");select.innerHTML="";
  languages.filter(l=>l.id!==currentLanguage).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=l.name+" · "+l.native;select.appendChild(o);});
@@ -1462,7 +1506,7 @@ function setDrawer(open){
 $("menuToggle").addEventListener("click",()=>setDrawer(!$("appDrawer").classList.contains("open")));
 $("drawerClose").addEventListener("click",()=>setDrawer(false));
 $("drawerBackdrop").addEventListener("click",()=>setDrawer(false));
-$("drawerNewChat").addEventListener("click",()=>{setDrawer(false);$("newChat").click();});
+$("drawerNewChat").addEventListener("click",()=>{setDrawer(false);startNewChat();});
 document.querySelectorAll(".drawer-link[data-page]").forEach(button=>button.addEventListener("click",()=>{
  const page=button.dataset.page;document.querySelectorAll(".drawer-link[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  navigate(page);setDrawer(false);
@@ -1502,6 +1546,11 @@ function loadPersonalSettings(){
  renderCourseManager($("courseLanguageSearch").value||"");
  const read=(id,fallback)=>localStorage.getItem("lingoraSetting_"+id)||fallback;
  $("themeChoice").value=read("theme","dark");$("fontScale").value=read("font","normal");$("accentChoice").value=read("accent","violet");
+ $("defaultLanguageChoice").innerHTML="";
+ getEnrolledLanguages().forEach(id=>{const l=languages.find(x=>x.id===id);if(!l)return;const o=document.createElement("option");o.value=id;o.textContent=l.name+" · "+l.native;$("defaultLanguageChoice").appendChild(o);});
+ const defaultLanguage=read("defaultLanguage",currentLanguage||"ja");
+ $("defaultLanguageChoice").value=getEnrolledLanguages().includes(defaultLanguage)?defaultLanguage:(getEnrolledLanguages()[0]||"ja");
+ $("defaultMethodChoice").value=read("defaultMethod",localStorage.getItem(STORAGE.method)||"adaptive");
  $("teacherPersonality").value=read("personality","friendly");$("teacherDetail").value=read("detail","balanced");$("teacherEmoji").value=read("emoji","some");
  $("lessonPace").value=read("pace","steady");$("exampleCount").value=read("examples","normal");$("exerciseFrequency").value=read("exercises","low");$("learningFocus").value=read("focus","conversation");
  $("reduceMotion").checked=read("motion","false")==="true";$("highContrast").checked=read("contrast","false")==="true";$("comfortableSpacing").checked=read("spacing","false")==="true";
@@ -1517,11 +1566,11 @@ function applyPersonalSettings(){
  document.body.classList.toggle("reduce-motion",get("motion")==="true");
  document.body.classList.toggle("high-contrast",get("contrast")==="true");
  document.body.classList.toggle("comfortable-spacing",get("spacing")==="true");
- document.body.classList.remove("accent-blue","accent-pink","accent-mint");
- if(["blue","pink","mint"].includes(get("accent")))document.body.classList.add("accent-"+get("accent"));
+ document.body.classList.remove("accent-violet","accent-blue","accent-pink","accent-mint","accent-cyan","accent-amber","accent-coral","accent-rose","accent-lime");
+ document.body.classList.add("accent-"+(get("accent")||"violet"));
 }
 function savePersonalSettings(){
- const v={theme:$("themeChoice").value,font:$("fontScale").value,accent:$("accentChoice").value,personality:$("teacherPersonality").value,detail:$("teacherDetail").value,emoji:$("teacherEmoji").value,pace:$("lessonPace").value,examples:$("exampleCount").value,exercises:$("exerciseFrequency").value,focus:$("learningFocus").value,motion:$("reduceMotion").checked,contrast:$("highContrast").checked,spacing:$("comfortableSpacing").checked};
+ const v={theme:$("themeChoice").value,font:$("fontScale").value,accent:$("accentChoice").value,defaultLanguage:$("defaultLanguageChoice").value,defaultMethod:$("defaultMethodChoice").value,personality:$("teacherPersonality").value,detail:$("teacherDetail").value,emoji:$("teacherEmoji").value,pace:$("lessonPace").value,examples:$("exampleCount").value,exercises:$("exerciseFrequency").value,focus:$("learningFocus").value,motion:$("reduceMotion").checked,contrast:$("highContrast").checked,spacing:$("comfortableSpacing").checked};
  Object.entries(v).forEach(([k,x])=>localStorage.setItem("lingoraSetting_"+k,String(x)));applyPersonalSettings();
 }
 function getTeacherPreferencePrompt(){
@@ -1665,12 +1714,9 @@ loadPersonalSettings();
 renderChatList();
 updateProgress();
 renderWords();
-if(localStorage.getItem("linguaSetupComplete")==="true"){
- $("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");updateActiveLanguage();renderChat();renderChatList();
-}else{
- fillLanguageOptions();
- $("classroom").classList.add("hidden");
-}
+localStorage.setItem("linguaSetupComplete","true");
+$("onboarding").classList.add("hidden");$("classroom").classList.remove("hidden");
+updateActiveLanguage();renderChat();renderChatList();
 </script>
 </body>
   </html>
