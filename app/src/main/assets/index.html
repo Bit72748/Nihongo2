@@ -589,11 +589,13 @@ body.theme-light #prompt{background:#fff;color:#1c2636;border-color:var(--accent
         <div class="chat-workspace">
           <div id="chat"></div>
           <div class="composer-dock">
-            <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..."></textarea>
-            <div class="composer-actions">
-              <button class="primary" id="send">Enviar</button>
-              <button id="clearChat">Limpar conversa</button>
+            <div class="composer-shell">
+              <textarea id="prompt" placeholder="Escreva sua dúvida ou peça uma aula..." aria-label="Mensagem para o professor"></textarea>
+              <button class="primary" id="send" type="button" aria-label="Enviar mensagem" title="Enviar mensagem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+              </button>
             </div>
+            <div class="composer-actions"><button id="clearChat" type="button">Limpar conversa</button></div>
           </div>
         </div>
       </div>
@@ -1727,3 +1729,56 @@ updateActiveLanguage();renderChat();renderChatList();
 </script>
 </body>
   </html>
+
+
+/* Lingora AI · Nébula composer / liquid glass */
+.composer-dock{
+  position:fixed;z-index:35;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;gap:5px;
+  padding:10px max(12px,calc((100vw - 850px)/2)) calc(5px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(9,11,18,0) 0%,rgba(9,11,18,.86) 22%,#090b12 100%);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+}
+.composer-shell{
+  width:100%;max-width:850px;margin:0 auto;
+  display:flex;align-items:flex-end;gap:9px;
+  padding:7px 8px 7px 13px;
+  border:1px solid rgba(153,174,225,.28);border-radius:24px;
+  background:linear-gradient(145deg,rgba(32,43,66,.78),rgba(13,19,31,.88));
+  box-shadow:0 12px 38px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter:blur(26px) saturate(155%);backdrop-filter:blur(26px) saturate(155%);
+}
+.composer-shell #prompt{
+  flex:1;min-width:0;width:100%;max-width:none;min-height:42px;max-height:132px;
+  margin:0;padding:11px 3px;resize:none;border:0!important;border-radius:14px;
+  outline:0;background:transparent!important;box-shadow:none!important;
+  color:var(--text);line-height:1.45;
+}
+.composer-shell #prompt::placeholder{color:#8b9ab3}
+.composer-shell #send{
+  flex:0 0 46px;width:46px;height:46px;padding:0;margin:0;
+  display:grid;place-items:center;border-radius:50%;
+  color:#f5f7ff!important;border:1px solid rgba(224,234,255,.48)!important;
+  background:linear-gradient(145deg,rgba(150,177,255,.72),rgba(91,116,190,.42))!important;
+  box-shadow:0 5px 18px rgba(92,125,220,.32),inset 0 1px 1px rgba(255,255,255,.48),inset 0 -1px 1px rgba(15,28,60,.22);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;
+}
+.composer-shell #send svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.composer-shell #send:active{transform:scale(.93);filter:brightness(1.12)}
+.composer-shell #send:disabled{opacity:.48;filter:saturate(.45)}
+.composer-actions{width:100%;max-width:850px;margin:0 auto;display:flex;justify-content:flex-end;min-height:20px}
+.composer-actions #clearChat{padding:2px 7px;border:0;background:transparent;color:#71809a;font-size:10px}
+#chat{padding-bottom:22px}
+#page-professor{padding-bottom:155px}
+body.theme-light .composer-dock{background:linear-gradient(180deg,rgba(244,246,250,0) 0%,rgba(244,246,250,.9) 22%,#f4f6fa 100%)}
+body.theme-light .composer-shell{background:linear-gradient(145deg,rgba(255,255,255,.86),rgba(236,241,250,.9));border-color:rgba(110,132,174,.3);box-shadow:0 12px 35px rgba(42,57,84,.12),inset 0 1px 0 rgba(255,255,255,.95)}
+body.theme-light .composer-shell #prompt{color:#1c2636}
+body.theme-light .composer-shell #prompt::placeholder{color:#78869c}
+@media(max-width:680px){
+ .composer-dock{padding:7px 9px calc(4px + env(safe-area-inset-bottom))}
+ .composer-shell{gap:7px;padding:6px 7px 6px 12px;border-radius:23px}
+ .composer-shell #prompt{min-height:40px;max-height:112px;padding:10px 2px}
+ .composer-shell #send{width:44px;height:44px;flex-basis:44px}
+ #page-professor{padding-bottom:145px}
+}
